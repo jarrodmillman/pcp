@@ -1,0 +1,322 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage{amssymb, amsmath, graphicx, subfigure}
+\usepackage{diagbox}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage[round]{natbib}
+
+% Commands for annotating the docs with fixme and inter-author notes.  See
+% below for how to disable these.
+%
+% Define a \fixme command to mark visually things needing fixing in the draft,
+% as well as similar commands for each author to leave initialed special
+% comments in the document.
+% For final printing or to simply disable these bright warnings, copy
+% (there's a target macros_off' in the makefile that does this) the file
+% macros_off.tex to macros.tex
+\newcommand{\fixme}[1] { \textcolor{red} {
+{\fbox{ {\bf Fix:} \ensuremath{\blacktriangleright }} {\bf #1}
+\fbox{\ensuremath{\blacktriangleleft} } } } }
+
+
+
+\setlength{\oddsidemargin}{.25in}
+\setlength{\evensidemargin}{.25in}
+\setlength{\textwidth}{6in}
+\setlength{\topmargin}{-0.4in}
+\setlength{\textheight}{8.5in}
+
+\newcommand{\heading}[6]{
+  \renewcommand{\thepage}{\arabic{page}}
+  \noindent
+  \begin{center}
+  \framebox{
+    \vbox{
+      \hbox to 5.78in { \textbf{#2} \hfill #3 }
+      \vspace{4mm}
+      \hbox to 5.78in { {\Large \hfill #6  \hfill} }
+      \vspace{2mm}
+      \hbox to 5.78in { {\large \hfill ``On Dinur's Proof of the PCP Theorem'' \hfill} }
+      \vspace{3mm}
+      \hbox to 5.78in { \textit{Instructor: #4 \hfill #5} }
+    }
+  }
+  \end{center}
+  \vspace*{4mm}
+}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{observation}[theorem]{Observation}
+\newtheorem{fact}[theorem]{Fact}
+\newtheorem{assumption}[theorem]{Assumption}
+
+\newenvironment{proof}{\noindent{\bf Proof:} \hspace*{1mm}}{
+	\hspace*{\fill} $\Box$ }
+\newenvironment{proof_of}[1]{\noindent {\bf Proof of #1:}
+	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
+\newenvironment{proof_claim}{\begin{quotation} \noindent Proof: \hspace*{1mm}}{
+	\hspace*{\fill} $\diamond$ \end{quotation}}
+
+\newenvironment{algorithm}{\noindent{\bf Algorithm:} \hspace*{1mm}}{
+	\hspace*{\fill} $\Box$ }
+\newenvironment{strategy}{\noindent{\bf Strategy:} \hspace*{1mm}}{
+	\hspace*{\fill} $\Box$ }
+
+\newcommand{\problemset}[3]{\heading{}{CS276: Cryptography}{#2}{Alessandro Chiesa}{#3}{Final Project}}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% PLEASE MODIFY THESE FIELDS AS APPROPRIATE
+\newcommand{\problemsetnum}{4}          % problem set number
+\newcommand{\duedate}{November 30, 2017}  % problem set deadline
+\newcommand{\studentname}{K. Jarrod Millman}    % full name of student (i.e., you)
+% PUT HERE ANY PACKAGES, MACROS, etc., ADDED BY YOU
+
+%-----------------------------------------------------------------------------
+% Special-purpose color definitions (dark enough to print OK in black and white)
+\usepackage{color}
+
+% A few colors to replace the defaults for certain link types
+\definecolor{orange}{cmyk}{0,0.4,0.8,0.2}
+\definecolor{darkorange}{rgb}{.71,0.21,0.01}
+\definecolor{darkgreen}{rgb}{.12,.54,.11}
+
+%-----------------------------------------------------------------------------
+% The hyperref package gives us a pdf with properly built
+% internal navigation ('pdf bookmarks' for the table of contents,
+% internal cross-reference links, web links for URLs, etc.)
+\usepackage{hyperref}
+
+\hypersetup{pdftex,  % needed for pdflatex
+  breaklinks=true,  % so long urls are correctly broken across lines
+  colorlinks=true,
+  urlcolor=blue,
+  linkcolor=darkorange,
+  citecolor=darkgreen,
+  }
+
+%%%%%%%%%%%%%%%%%%%%%%% general useful macros
+\usepackage{mathtools}
+\newcommand{\N}{{\mathbf N}}
+\newcommand{\Z}{{\mathbf Z}}
+\newcommand{\F}{{\mathbf F}}
+\newcommand{\Q}{{\mathbf Q}}
+\newcommand{\Time}{\operatorname{time}}
+\newcommand{\poly}{{\mathrm{poly}}}
+\newcommand{\polylog}{{\mathrm{polylog}}}
+\newcommand{\loglog}{{\mathop{\mathrm{loglog}}}}
+\newcommand{\E}{\operatorname{E}}
+\DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
+\DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
+\newcommand{\comp}[1]{\overline{#1}}
+
+
+
+\newcommand{\bits}{\{0,1\}}
+\newcommand{\class}[1]{\mathbf{#1}}
+\newcommand{\coclass}[1]{\mathbf{co\mbox{-}#1}} % and their complements
+\newcommand{\BPP}{\class{BPP}}
+\newcommand{\NP}{\class{NP}}
+\newcommand{\PCP}{\class{PCP}}
+\newcommand{\coNP}{\coclass{NP}}
+\newcommand{\RP}{\class{RP}}
+\newcommand{\coRP}{\coclass{RP}}
+\newcommand{\ZPP}{\class{ZPP}}
+\newcommand{\RNC}{\class{RNC}}
+\newcommand{\RL}{\class{RL}}
+\renewcommand{\L}{\class{L}}
+\newcommand{\coRL}{\coclass{RL}}
+\newcommand{\IP}{\class{IP}}
+\newcommand{\AM}{\class{AM}}
+\newcommand{\MA}{\class{MA}}
+\renewcommand{\P}{\class{P}}
+\newcommand\prBPP{\class{prBPP}}
+\newcommand\prRP{\class{prRP}}
+\newcommand\prP{\class{prP}}
+\newcommand{\Ppoly}{\class{P/poly}}
+\newcommand{\DTIME}{\class{DTIME}}
+\newcommand{\ETIME}{\class{E}}
+\newcommand{\BPTIME}{\class{BPTIME}}
+\newcommand{\EXP}{\class{EXP}}
+\newcommand{\SUBEXP}{\class{SUBEXP}}
+\newcommand{\qP}{\class{\tilde{P}}}
+\newcommand{\PH}{\class{PH}}
+\newcommand{\NC}{\class{NC}}
+\newcommand{\PSPACE}{\class{PSPACE}}
+\newcommand{\quasiP}{\class{\tilde{P}}}
+\newcommand{\BPAC}{\class{BPAC_0}}
+\newcommand{\qAC}{\class{\widetilde{AC}_0}}
+
+\newcommand{\PRIMES}{\mathsf{PRIMES}}
+\newcommand{\GEN}{\mathsf{GEN}}
+
+\newcommand{\negl}{{\mathrm{neg}}}
+\newcommand{\Diam}{\mathrm{Diam}}
+\newcommand{\Cut}{\mathrm{Cut}}
+\newcommand{\pf}{\mathit{pf}}
+\newcommand{\Col}{\mathrm{Col}}
+\newcommand{\Supp}{\mathrm{Supp}}
+\newcommand{\iid}{\stackrel{\mathrm{iid}}{\sim}}
+\newcommand{\eqdef}{\mathbin{\stackrel{\rm def}{=}}}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\begin{document}
+\problemset{\problemsetnum}{\duedate}{\studentname}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\abstract{\cite{radhakrishnan2007dinur} discuss the proof by
+\cite{dinur2007pcp} of the PCP theorem.}
+
+\section{Introduction}
+
+In class, we discussed interactive proof systems introduced by
+\citet*{goldwasser1989knowledge}.
+In particular, we saw we could view $\NP$ as a simple proof system with a
+deterministic polynomial-time verifier interacting with an all-powerful prover.
+We also saw that by providing the verifier access to randomness and assuming
+the existence of one-way functions, we could obtain systems with the remarkable
+property of zero-knowledge.
+
+For the final project, I learned about a related line of work involving
+probabilistic proof systems.
+%another line of thought developed from
+%this concept of computation through interaction. 
+%This line of thought begins by considering a probabilistic verifier with oracle
+%access to the proof.
+\citet*{feige1996interactive} showed that probabilistic proof systems
+were closely related to hardness of approximations.
+Building on this relationship, \citet*{arora1998probabilistic} and
+\citet*{arora1998proof} proved the PCP Theorem, which shows that a
+probabilistic verifier with logarithmic randomness and constant number of
+queries provides a new way of characterizing $\NP$.
+The original proof was algebraic and difficult.  \cite{dinur2007pcp} provided a
+relatively simple, new proof with a combinatorial flavor.
+
+%In section~\ref{pcp}, I briefly recall the notion of an interactive proof
+%system.
+%Then I define probabilistically checkable proofs and formally state the PCP
+%theorem.
+%Next I introduce constraints satisfaction problems (CSPs) and the CSP variant
+%of the PCP theorem.
+%I conclude the section with a proof of the equivalence of these two theorems.
+%Finally, in section~\ref{proof}, I briefly outline Dinur's proof of the PCP
+%theorem.
+
+%\section{Preliminaries}
+
+\section{PCP Theorem}\label{pcp}
+
+A \emph{system of logic} (or a proof system) is composed of (1) axioms
+and (2) rules of derivation.
+A proof of a claim consists of a sequence of sentences ending with the claim
+such that each sentence is an axiom or may be derived according to the rules
+from the previous sentences in the proof.
+We desire two main properties from such a system:
+\begin{itemize}[leftmargin=10em]
+\item[\textbf{(Completeness)}] True claims have a proof.
+\item[\textbf{(Soundness)}] False claims have no proof.
+\end{itemize}
+
+%Experience suggests that there is a difference in difficulty between
+%Experience suggests that producing a proof and verifying a proof
+%are distinct activities.
+%Using the verifier-based definition of $\NP$, it is easy to see that
+%we can characterize $\NP$ as  
+%
+%Interactive proof systems involve the interactions between
+%two parties: an all-powerful prover $P$ and an efficient
+%verifier $V$.
+%The idea is that for an claim $x$, the prover $P$ provides a
+%proof $\pi$ of the claim $x$ to the verifier $V$.
+%More formally,\\
+%\begin{definition}
+Computationally, a \emph{traditional proof system} for a language $L \subseteq \bits^*$
+is a deterministic, polynomial-time verifier $V$ with these properties:
+\begin{itemize}[leftmargin=10em]
+\item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad V(x, \pi) \text{ accepts}$.
+\item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad V(x, \pi) \text{ rejects}$.
+\end{itemize}
+%\end{definition}
+You can imagine the verifier $V$ checking that each sentence of the proof $\pi$
+is an axiom or derived from previous sentences in the proof $\pi$ to see how
+the computational perspective corresponds to a system of logic.
+
+Since $V$ runs in polynomial time in $|x|$, we must have
+$|\pi| \le p(|x|)$ for some polynomial $p$.
+It is clear---from the verifier-based definition of $\NP$---that traditional proof
+systems are an equivalent characterization of $\NP$.
+So we may view the theory of $\NP$-completeness as providing a collection of
+equivalent traditional proof systems. 
+
+...
+
+...
+
+...
+
+...
+
+...
+
+...
+
+
+\subsection{Probabilistically Checkable Proofs}
+
+\begin{definition}[$(r(n), q(n))$-restricted verifier]
+A probabilistic polynomial time verifier $V$ is \emph{$(r(n), q(n))$-restricted} if,
+for all input $x$ and every proof $\pi$, $V^\pi(x)$ makes at most $q(n)$ oracle queries
+to $\pi$ and uses at most $r(n)$ random bits.
+\end{definition}
+
+
+\begin{definition}[PCP complexity classes]
+We say a language $L$ is in $\PCP[r(n), q(n)]$ if there is a
+$(r(n), q(n))$-restricted verifier $V$ such that
+\begin{itemize}[leftmargin=10em]
+\item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad \Pr[V^\pi(x) \text{ accepts}] = 1$.
+\item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
+\end{itemize}
+\end{definition}
+
+\begin{theorem}[PCP Theorem]
+$$
+\NP = \PCP[O(\log n), O(1)]
+$$
+\end{theorem}
+
+\subsection{Constraint Satisfaction Problems}
+
+\begin{definition}[CSP]
+\end{definition}
+
+\begin{theorem}[CSP variant of the PCP Theorem]
+\end{theorem}
+
+\subsection{Equivalence of the two notions}
+
+\section{Overview of Dinur's proof}\label{proof}
+
+take a result with a small soundness gap $1 - 1/m$
+gradually amplify the soundness to get the
+desired gap while keeping the length of the proof constant.
+
+uses the CSP variant of the PCP theorem:
+
+\subsection{Expanders}
+
+\bibliographystyle{plainnat}
+\bibliography{final}
+
+\end{document}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
