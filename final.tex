@@ -48,6 +48,8 @@
 
 \newtheorem{theorem}{Theorem}
 \newtheorem{definition}[theorem]{Definition}
+\newtheorem{problem}[theorem]{Computational Problem}
+\newtheorem{example}[theorem]{Example}
 \newtheorem{remark}[theorem]{Remark}
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{corollary}[theorem]{Corollary}
@@ -156,6 +158,8 @@
 
 \newcommand{\PRIMES}{\mathsf{PRIMES}}
 \newcommand{\GEN}{\mathsf{GEN}}
+\newcommand{\SAT}{\mathsf{SAT}}
+\newcommand{\UNSAT}{\mathsf{UNSAT}}
 
 \newcommand{\negl}{{\mathrm{neg}}}
 \newcommand{\Diam}{\mathrm{Diam}}
@@ -187,7 +191,7 @@ We also saw that by providing the verifier access to randomness and assuming
 the existence of one-way functions, we could obtain systems with the remarkable
 property of zero-knowledge.
 
-For the final project, I learned about a related line of work involving
+For the final project, I investigated a related line of work involving
 probabilistic proof systems.
 %another line of thought developed from
 %this concept of computation through interaction. 
@@ -219,7 +223,7 @@ relatively simple, new proof with a combinatorial flavor.
 A \emph{system of logic} (or a proof system) is composed of (1) axioms
 and (2) rules of derivation.
 A proof of a claim consists of a sequence of sentences ending with the claim
-such that each sentence is an axiom or may be derived according to the rules
+such that each sentence is (1) an axiom or (2) may be derived according to the rules
 from the previous sentences in the proof.
 We desire two main properties from such a system:
 \begin{itemize}[leftmargin=10em]
@@ -240,23 +244,27 @@ We desire two main properties from such a system:
 %proof $\pi$ of the claim $x$ to the verifier $V$.
 %More formally,\\
 %\begin{definition}
-Computationally, a \emph{traditional proof system} for a language $L \subseteq \bits^*$
-is a deterministic, polynomial-time verifier $V$ with these properties:
+
+From a computational perspective, a \emph{traditional proof system} for a
+language $L \subseteq \bits^*$ is a deterministic, polynomial-time verifier $V$
+such that for all $x \in \bits^*$ the following holds:
 \begin{itemize}[leftmargin=10em]
 \item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad V(x, \pi) \text{ accepts}$.
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad V(x, \pi) \text{ rejects}$.
 \end{itemize}
 %\end{definition}
-You can imagine the verifier $V$ checking that each sentence of the proof $\pi$
-is an axiom or derived from previous sentences in the proof $\pi$ to see how
-the computational perspective corresponds to a system of logic.
+You can imagine the verifier checking that each sentence of the proof
+is an axiom or derived from previous sentences in the proof to see that
+this definition corresponds to a system of logic.
 
 Since $V$ runs in polynomial time in $|x|$, we must have
 $|\pi| \le p(|x|)$ for some polynomial $p$.
 It is clear---from the verifier-based definition of $\NP$---that traditional proof
 systems are an equivalent characterization of $\NP$.
 So we may view the theory of $\NP$-completeness as providing a collection of
-equivalent traditional proof systems. 
+equivalent systems for writing proofs. 
+
+...
 
 ...
 
@@ -273,12 +281,16 @@ equivalent traditional proof systems.
 
 \subsection{Probabilistically Checkable Proofs}
 
+We start by giving the verifier access to randomness and oracle access to the
+proof.
+
 \begin{definition}[$(r(n), q(n))$-restricted verifier]
 A probabilistic polynomial time verifier $V$ is \emph{$(r(n), q(n))$-restricted} if,
 for all input $x$ and every proof $\pi$, $V^\pi(x)$ makes at most $q(n)$ oracle queries
 to $\pi$ and uses at most $r(n)$ random bits.
 \end{definition}
 
+With these $(r(n), q(n))$-restricted verifiers, we define a family of complexity classes.
 
 \begin{definition}[PCP complexity classes]
 We say a language $L$ is in $\PCP[r(n), q(n)]$ if there is a
@@ -288,6 +300,22 @@ $(r(n), q(n))$-restricted verifier $V$ such that
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
 \end{itemize}
 \end{definition}
+We will use the refined notation $\PCP_s[r(n), q(n)]$ to indicate that
+the $1/2$ in the soundness property is replaced with $s$.
+
+To get a sense of how these classes relate to more standard complexity classes,
+note that setting the parameters to $0$ yields the following trivial equivalences:
+\begin{align*}
+\P &= \PCP[0, 0] \\
+\NP &= \PCP[0, \poly(n)] \\
+\coRP &= \PCP[\poly(n), 0].
+\end{align*}
+More interestingly, since we can derandomize any probabilistic polynomial-time algorithm
+using $O(\log n)$ random bits by enumeration, we have
+$$
+\PCP[O(\log n), O(1)] \subseteq \NP.
+$$
+Surprisingly, the PCP Theorem gives us the converse as well.
 
 \begin{theorem}[PCP Theorem]
 $$
@@ -295,12 +323,84 @@ $$
 $$
 \end{theorem}
 
-\subsection{Constraint Satisfaction Problems}
+By the above remark, it suffices to show that
+$$
+\NP \subseteq \PCP[O(\log n), O(1)]
+$$
+to prove the PCP theorem.
+To see an outline of Dinur's proof of this fact, we first need to briefly
+discuss hardness of approximation for constraint satisfaction.
 
-\begin{definition}[CSP]
+\subsection{PCPs and Approximations}
+
+%To see the relation between PCPs and approximation let's consider the
+%following problem.
+
+Let $\mathcal{C} = \{c_1, c_2, \dots, c_m\}$ be a collection of constraints on
+variables $V$ taking values from some alphabet $\Sigma$.
+If there is an assignment of values to the variables satisfying all the
+constraints, we say $\mathcal{C}$ is \emph{satisfiable}; otherwise, we say
+$\mathcal{C}$ is \emph{unsatisfiable}.
+Note that if $\mathcal{C}$ is \emph{unsatisfiable}, then at least one of the
+$m$ constraints must be unsatisfied no matter how we assign values to the
+variables and we say $\mathcal{C}$ is \emph{$1/m$-far} from satisfiable. 
+
+For example, consider the $\NP$-hard problem of deciding whether a graph is 3-colorable.
+In this example, the variables are the vertices of the graph, $\Sigma = \{1, 2,
+3\}$, and there is one constraint per edge requiring that its endpoints have
+different values.
+More generally, given any two-variable constraint system (i.e., one where each
+constraint involves at most two variables), we can construct a constraint graph
+over the variables by creating an edge for each constraint in the natural way.
+
+%on which values from $\Sigma$ a set of $n$ variables $V$ may take.
+%Given a set of $n$ variables $V$ taking values from a set $\Sigma$,
+%a system of constraints $\mathcal{C} = \{c_1, c_2, \dots, c_m\}$
+%impose conditions that the variables must satisfy.
+
+
+\begin{definition}[Constraint Graph] A constraint graph is a tuple
+$G = (V, E, \Sigma, \mathcal{C})$ where
+\begin{enumerate}
+\item The ordered pair $(V, E)$ is an undirected graph called the underlying
+  graph of $G$.
+\item Each vertex in $V$ takes values in the finite set $\Sigma$
+  called the alphabet of $G$.
+\item Each edge $e \in E$ has a constraint $c_e \subseteq \Sigma^2$ and
+  $\mathcal{C} = \{c_e\}_{e \in E}$.
+\end{enumerate}
 \end{definition}
 
-\begin{theorem}[CSP variant of the PCP Theorem]
+An \emph{assignment} of $G$ is a function $\sigma \;:\: V \to \Sigma$.
+We a say a constraint $c_e$ is satisified by $(a, b)$ if $(a, b) \in c_e$. 
+An assignment $\sigma$ satisfies $G$ if every edge $\{u, v\} \in E$
+is satisfied by $(\sigma(u), \sigma(v))$.
+For any assignment $\sigma$, we define
+\begin{align*}
+\UNSAT_\sigma(G) &\eqdef \Pr_{\{u, v\} \in E} \big[(\sigma(u), \sigma(v)) \notin c_{\{u, v\}}\big] \\
+  &= \frac{\big|\{e \in E \;:\; \sigma \text{ does not satisfy } c_e\}\big|}{|E|}
+\end{align*}
+and
+$$
+\UNSAT(G) \eqdef \min_\sigma \UNSAT_\sigma(G),
+$$
+which we call the \emph{unsat-value} of $G$.
+% is the smallest fraction of unsatisfied
+%constraints over all possible assignments
+The \emph{constraint graph satisfiability problem} is to decide whether
+a constraint graph admits a satisfying assignment.
+Note that the \emph{size} of a description of $G$, denoted $size(G)$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
+By reducing from graph $k$-colorability, it is easy to see that
+the constraint graph satisfiability problem is also $\NP$-hard.
+
+%\begin{example}[Graph $k$-coloring]
+%Given a graph $(V, E)$, we want to know whether it admits a $k$-coloring.
+%This can be cast as a constraint graph with $(V, E)$ as the underlying
+%graph, $\Sigma = \{1, 2, \dots, k\}$, and $c_{\{u, v\}} = 
+%\end{example}
+
+\begin{theorem}[Main Theorem]
+
 \end{theorem}
 
 \subsection{Equivalence of the two notions}
@@ -314,6 +414,40 @@ desired gap while keeping the length of the proof constant.
 uses the CSP variant of the PCP theorem:
 
 \subsection{Expanders}
+
+Let $G = (V, E)$ be a finite, undirected, $d$-regular graph.
+Let $L$ be the normalized Laplacian of $G$ with eigenvalues
+$0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n \le 2$
+counted with multiplicity.
+%For any $S, T \subseteq V$, let
+%$G(S)$ denote the subgraph of $G$ induced by $S$ and let $e(S, T)$
+%be the number of edges with one endpoint in $S$ and one endpoint
+%in $T - S$.
+%If $S \subseteq B \subseteq V$, then let $\overline{S}$
+%denote the complement of $S$  in $V$, $\notsin$ denote  complement of
+%$S$ in $B$, and $\notsout$ denote complement of $S$ not in $B$.
+%Note that $\{\notsin, \notsout\}$ is a partition of $\nots$
+%(i.e., $\nots = \notsin \cup \notsout$ and $\notsin \cap \notsout = \emptyset$).
+For any subset of vertices $S \subseteq V$ let
+\begin{align*}
+\phi(S) \;\eqdef\; \frac{|\{\text{edges between } S \text{ and } V - S\}|}{d\cdot |S|}
+\end{align*}
+be the \emph{expansion} of $S$ in $G$.
+We say $G$ is an $(\eta, d)$-expander if $G$ is $d$-regular and
+every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
+%The \emph{expansion} of $G$ is
+%\begin{align*}
+%\phi(G) \eqdef \min_{\substack{S \subseteq V \\ 0 < |S| \le \frac{|V|}{2}}} \phi(S).
+%\end{align*}
+
+\begin{theorem}[Hitting Property of Expander Walks]
+If $G$ is a regular digraph with spectral expansion $1 - \lambda$, then for any $B \subset V(G)$
+of density $\mu$, the probability that a random walk $(V_1, \dots, V_t)$ of $t - 1$
+steps in $G$ starting in a uniformly random vertex $V_1$ always remains in $B$ is
+\begin{align*}
+\Pr\left[\wedge_{i=1}^t V_i \in B\right] \le (\mu + \lambda \cdot (1 - \mu))^t.\\
+\end{align*}
+\end{theorem}
 
 \bibliographystyle{plainnat}
 \bibliography{final}
