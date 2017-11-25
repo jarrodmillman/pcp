@@ -158,9 +158,15 @@
 
 \newcommand{\PRIMES}{\mathsf{PRIMES}}
 \newcommand{\GEN}{\mathsf{GEN}}
+\newcommand{\CSP}{\mathsf{CSP}}
+\newcommand{\COL}{\mathsf{COL}}
+\newcommand{\MAX}{\mathsf{MAX}}
 \newcommand{\SAT}{\mathsf{SAT}}
 \newcommand{\UNSAT}{\mathsf{UNSAT}}
+\newcommand{\GAPSAT}{\mathsf{GAP\;3SAT}}
 
+\newcommand{\opt}{{\operatorname{opt}}}
+\newcommand{\prep}{{\operatorname{prep}}}
 \newcommand{\negl}{{\mathrm{neg}}}
 \newcommand{\Diam}{\mathrm{Diam}}
 \newcommand{\Cut}{\mathrm{Cut}}
@@ -264,19 +270,19 @@ systems are an equivalent characterization of $\NP$.
 So we may view the theory of $\NP$-completeness as providing a collection of
 equivalent systems for writing proofs. 
 
-...
-
-...
-
-...
-
-...
-
-...
-
-...
-
-...
+%...
+%
+%...
+%
+%...
+%
+%...
+%
+%...
+%
+%...
+%
+%...
 
 
 \subsection{Probabilistically Checkable Proofs}
@@ -284,24 +290,23 @@ equivalent systems for writing proofs.
 We start by giving the verifier access to randomness and oracle access to the
 proof.
 
-\begin{definition}[$(r(n), q(n))$-restricted verifier]
-A probabilistic polynomial time verifier $V$ is \emph{$(r(n), q(n))$-restricted} if,
-for all input $x$ and every proof $\pi$, $V^\pi(x)$ makes at most $q(n)$ oracle queries
+\begin{definition}[$(r, q)$-restricted verifier]
+A probabilistic polynomial time oracle algorithm $V$ is a \emph{$(r(n), q(n))$-restricted verifier} if,
+for all input $x$ of size $n$ and every proof $\pi$, $V^\pi(x)$ makes at most $q(n)$ oracle queries
 to $\pi$ and uses at most $r(n)$ random bits.
 \end{definition}
 
-With these $(r(n), q(n))$-restricted verifiers, we define a family of complexity classes.
+With these $(r(n), q(n))$-restricted verifiers, we define the following complexity classes.
 
 \begin{definition}[PCP complexity classes]
-We say a language $L$ is in $\PCP[r(n), q(n)]$ if there is a
+A language $L\in\bits^*$ is in $\PCP[r(n), q(n)]$ if there is a
 $(r(n), q(n))$-restricted verifier $V$ such that
 \begin{itemize}[leftmargin=10em]
 \item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad \Pr[V^\pi(x) \text{ accepts}] = 1$.
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
 \end{itemize}
 \end{definition}
-We will use the refined notation $\PCP_s[r(n), q(n)]$ to indicate that
-the $1/2$ in the soundness property is replaced with $s$.
+We use the notation $\PCP_s[r(n), q(n)]$ to indicate that the \emph{soundness error} is $s$ and not $1/2$.
 
 To get a sense of how these classes relate to more standard complexity classes,
 note that setting the parameters to $0$ yields the following trivial equivalences:
@@ -317,7 +322,7 @@ $$
 $$
 Surprisingly, the PCP Theorem gives us the converse as well.
 
-\begin{theorem}[PCP Theorem]
+\begin{theorem}[PCP Theorem]\label{pcp}
 $$
 \NP = \PCP[O(\log n), O(1)]
 $$
@@ -337,7 +342,7 @@ discuss hardness of approximation for constraint satisfaction.
 %following problem.
 
 Let $\mathcal{C} = \{c_1, c_2, \dots, c_m\}$ be a collection of constraints on
-variables $V$ taking values from some alphabet $\Sigma$.
+variables $x_1, x_2, \dots, x_n$ taking values from some alphabet $\Sigma$.
 If there is an assignment of values to the variables satisfying all the
 constraints, we say $\mathcal{C}$ is \emph{satisfiable}; otherwise, we say
 $\mathcal{C}$ is \emph{unsatisfiable}.
@@ -345,10 +350,36 @@ Note that if $\mathcal{C}$ is \emph{unsatisfiable}, then at least one of the
 $m$ constraints must be unsatisfied no matter how we assign values to the
 variables and we say $\mathcal{C}$ is \emph{$1/m$-far} from satisfiable. 
 
-For example, consider the $\NP$-hard problem of deciding whether a graph is 3-colorable.
-In this example, the variables are the vertices of the graph, $\Sigma = \{1, 2,
-3\}$, and there is one constraint per edge requiring that its endpoints have
-different values.
+For example, consider $3\COL$ the $\NP$-hard problem of deciding whether a graph is 3-colorable.
+\begin{center}
+\begin{tabular}{c @{$\quad\longleftrightarrow\quad$} c}
+$\CSP$ instance & $3\COL$ instance\\
+\hline
+variables $x_1, x_2, \dots, x_n$ & vertices $v_1, v_2, \dots, v_n$ of $G = (V, E)$\\
+alphabet $\Sigma$ & colors $\{1, 2, 3\}$ \\
+constraints $c_1, c_2, \dots, c_m$ & edge constraints $\{c_e \subseteq \{1, 2, 3\}^2 \;:\;\text{colors differ}\}_{e \in E}$\\
+\end{tabular}
+\end{center}
+If a graph is not 3-colorable, then the edge constraints are $1/m$-far from satisfiable
+where $m=|E|$ (since at least one edge must be monochromatic).
+
+$\MAX$ $3\COL$ is the problem of finding a 3-coloring that minimizes the
+number of monochromatic edges of a graph.
+This problem is $\NP$-hard by the obvious reduction from the corresponding
+decision problem $3\COL$.
+Let $\opt_{\MAX\text{ }3\COL}(G)$ denote the optimal solution to $\MAX$ $3\COL$
+on input $G$.
+An algorithm $A$ is an \emph{$\varepsilon$-approximation} algorithm for
+$\MAX$ $3\COL$ if for every graph $G$, $A(G)$ returns a 3-coloring
+satisfying at least $\varepsilon \cdot \opt_{\MAX\text{ }3\COL}(G)$
+edge constraints.
+A natural question is whether there exist polynomial time $\varepsilon$-approximation
+algorithms for $\MAX$ $3\COL$ for every $\varepsilon<1$.
+Or is there a universal constant $\varepsilon_0$ such that it is
+$\NP$-hard to find a 3-coloring satisfying at least $\varepsilon_0 \cdot \opt_{\MAX\text{ }3\COL}(G)$
+edge constraints?
+\fixme{Say something about gap problems?}
+
 More generally, given any two-variable constraint system (i.e., one where each
 constraint involves at most two variables), we can construct a constraint graph
 over the variables by creating an edge for each constraint in the natural way.
@@ -372,7 +403,7 @@ $G = (V, E, \Sigma, \mathcal{C})$ where
 \end{definition}
 
 An \emph{assignment} of $G$ is a function $\sigma \;:\: V \to \Sigma$.
-We a say a constraint $c_e$ is satisified by $(a, b)$ if $(a, b) \in c_e$. 
+We a say a constraint $c_e$ is satisfied by $(a, b)$ if $(a, b) \in c_e$. 
 An assignment $\sigma$ satisfies $G$ if every edge $\{u, v\} \in E$
 is satisfied by $(\sigma(u), \sigma(v))$.
 For any assignment $\sigma$, we define
@@ -381,17 +412,19 @@ For any assignment $\sigma$, we define
   &= \frac{\big|\{e \in E \;:\; \sigma \text{ does not satisfy } c_e\}\big|}{|E|}
 \end{align*}
 and
-$$
-\UNSAT(G) \eqdef \min_\sigma \UNSAT_\sigma(G),
-$$
-which we call the \emph{unsat-value} of $G$.
+\begin{align*}
+\UNSAT(G) \;\eqdef\; \min_\sigma \UNSAT_\sigma(G)
+  \;=\; \max_\varepsilon \{\varepsilon \;:\; G \text{ is } \varepsilon\text{-far from satisfied} \}.
+\end{align*}
+We call $\UNSAT(G)$ the \emph{unsat-value} of $G$.
 % is the smallest fraction of unsatisfied
 %constraints over all possible assignments
 The \emph{constraint graph satisfiability problem} is to decide whether
 a constraint graph admits a satisfying assignment.
-Note that the \emph{size} of a description of $G$, denoted $size(G)$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
-By reducing from graph $k$-colorability, it is easy to see that
-the constraint graph satisfiability problem is also $\NP$-hard.
+%Note that the \emph{size} of a description of $G$, denoted $size(G)$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
+Note that the \emph{size} of the input $G$, denoted $|G|$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
+%By reducing from graph $k$-colorability, it is easy to see that
+%the constraint graph satisfiability problem is also $\NP$-hard.
 
 %\begin{example}[Graph $k$-coloring]
 %Given a graph $(V, E)$, we want to know whether it admits a $k$-coloring.
@@ -399,26 +432,138 @@ the constraint graph satisfiability problem is also $\NP$-hard.
 %graph, $\Sigma = \{1, 2, \dots, k\}$, and $c_{\{u, v\}} = 
 %\end{example}
 
-\begin{theorem}[Main Theorem]
+We are now ready to state Dinur's main theorem.
 
+\begin{theorem}[Dinur's Main Theorem]\label{dinursthm}
+For all alphabets $\Sigma$ such that $|\Sigma| = O(1)$ there exists constants $c > 0$ and
+$0 < \alpha < 1$ such that for any constraint graph $G = (V, E, \Sigma, \mathcal{C})$
+one can efficiently (i.e., in polynomial time) construct another constraint graph
+$G' = (V', E', \Sigma_0, \mathcal{C}')$ such that
+\begin{itemize}[leftmargin=10em]
+%\item[\textbf{(Linear blowup)}] $size(G') \le c \cdot size(G)$ and $|\Sigma_0| = O(1)$.
+\item[\textbf{(Linear blowup)}] $|G'| \le c \cdot |G|$ and $|\Sigma_0| = O(1)$.
+\item[\textbf{(Completeness)}] $\UNSAT(G)=0 \implies \UNSAT(G')=0$.
+\item[\textbf{(Soundness)}] $\UNSAT(G')\ge \min\{2\cdot\UNSAT(G), \alpha\}$.
+\end{itemize}
 \end{theorem}
+In other words, the efficient construction preserves completeness, doubles
+soundness, and only incurs a linear blowup in the size of the problem.
 
-\subsection{Equivalence of the two notions}
+We discuss Dinur's proof of this in the next section.
+For now, let's see how this theorem gives us a proof of the PCP Theorem.
 
-\section{Overview of Dinur's proof}\label{proof}
+\begin{corollary}[PCP Theorem, Alternative Formulation]\label{corollary}
+$\GAPSAT$ is $\NP$-hard.
+\end{corollary}
 
-take a result with a small soundness gap $1 - 1/m$
-gradually amplify the soundness to get the
-desired gap while keeping the length of the proof constant.
+We first state and prove the following lemma.
 
-uses the CSP variant of the PCP theorem:
+\begin{lemma}\label{csg-hard} It is $\NP$-hard to decide if $\UNSAT(G)=0$ given
+a constraint graph satisfaction problem with $|\Sigma| = 3$.
+\end{lemma}
+
+\begin{proof}%We reduce from the $\NP$-complete problem of graph 3-coloring.
+Let $G$ be an instance of the $\NP$-complete problem of graph 3-coloring.
+Construct a constraint graph $G'=(V, E, \Sigma, \mathcal{C})$ with
+$G = (V,E)$ as its underlying graph as follows:
+Let the alphabet be $\Sigma = \{1, 2, 3\}$ for the 3 colors and place
+inequality constraints on each edge of the graph.
+Clearly, $G$ is 3-colorable exactly when $\UNSAT(G')=0$.
+\end{proof}\\
+
+\begin{proof_of}{Corollary~\ref{corollary}}
+To prove that $\GAPSAT$ is $\NP$-hard, we must show that for some universal
+constant $\alpha > 0$, given a set of constraints $\mathcal{C} = \{c_1, c_2, \dots, c_m\}$
+each of which is a disjunction of three literals, it is $\NP$-hard to decide
+whether $\UNSAT(G)=0$ or $\UNSAT(G)>\alpha$.
+To do this, we reduce from the constraint graph satisfaction problem with
+$|\Sigma| = 3$, which by Lemma~\ref{csg-hard} we know to be $\NP$-hard.
+
+Let $G_0 = (V_0, E_0, \Sigma, \mathcal{C})$ be an instance of the constraint
+graph satisfaction problem with $|\Sigma| = 3$.
+By iteratively applying Theorem~\ref{dinursthm}, we construct a sequence
+of constraint graphs $G_0, G_1, \dots, G_t$ such that $G_i$ is the constraint
+graph constructed from $G_{i-1}$ for $i\ge 1$.
+
+\fixme{until a constant fraction...see Dinur p. 13, Trevisan p. 9}
+\end{proof_of}
+
+Finally, we show that Corollary~\ref{corollary} implies $\NP \subseteq \PCP[O(\log n),O(1)]$
+and, thus, Theorem~\ref{pcp}.\footnote{
+Corollary~\ref{corollary} and Theorem~\ref{pcp} are equivalent, but given space limitations
+we will not prove the other implication.}
+In the proof of Corollary~\ref{corollary}, we demonstrated a polynomial-time
+Karp reduction from the constraint graph satisfaction problem with
+$|\Sigma| = 3$ to $\GAPSAT$.
+%Let $L$ be any language in $\NP$.
+%Since $\GAPSAT$ is $\NP$-hard, there exists a polynomial-time reduction $f$
+%from $L$ to $\GAPSAT$.
+On input $x$, the verifier runs the reduction  to obtain a $\GAPSAT$
+instance $\phi_x$.
+The prover provides %a proof $\pi : V \to \bits$, which 
+a boolean assignment to the variables of $\phi_x$ as a candidate proof $\pi$
+that $\phi_x$ is satisfiable.
+The verifier randomly selects $O(1/\alpha)$ clauses of $\phi_x$ and
+checks that they are satisfied by the assignment $\pi$.
+Let $m$ be the number of clauses in $\phi_x$.
+The verifier uses $O(\log m \cdot 1/\alpha) = O(|x|)$ random bits
+to select $O(1/\alpha)$ clauses of $\phi_x$ and queries
+$O(1/\alpha)$ bits of $\pi$.
+Clearly,
+\begin{itemize}[leftmargin=10em]
+\item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad \Pr[V^\pi(x) \text{ accepts}] = 1$.
+\item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
+\end{itemize}
+
+%\subsection{Equivalence of the two notions}
+
+\section{Dinur's Main Theorem}\label{proof}
+
+%take a result with a small soundness gap $1 - 1/m$
+%gradually amplify the soundness to get the
+%desired gap while keeping the length of the proof constant.
+%
+%It remains to prove Theorem~\ref{dinursthm}, which we will not do.
+
+%Given any constraint graph $G = (V, E, \Sigma, \mathcal{C})$,
+Given any constraint graph $G$,
+we construct another constraint graph $G'$
+%\begin{align}\label{construct}
+%G' = (\prep(G))^t \circ \mathcal{P}
+%\end{align}
+%such that $G' = (V', E', \Sigma_0, \mathcal{C}')$ for some appropriately
+%choosen $t\in \N$
+in three steps:
+\begin{center}
+\begin{tabular}{l l p{10cm}}
+1. & $\prep(G)$ & \textbf{Preprocess} Ensure the graph has a ``nice'' structure
+                   (i.e., $d$-regular, same alphabet as $G$, rougly the same unsat-value). \\
+2. & $\prep(G)^t$ & \textbf{Power} Amplify the
+                    unsat-value at the expense of increasing the alphabet. \\
+3. & $\prep(G)^t \circ \mathcal{P}$ & \textbf{Compose} Reduce the alphabet while roughly
+                   preserving the unsat-value.
+\end{tabular}
+\end{center}
+Once we have made these three operations precise,
+proving Theorem~\ref{dinursthm} requires showing that $G' = \prep(G)^t \circ \mathcal{P}$ is efficiently
+computable, preserves completeness, doubles soundness, and only
+incurs a linear blowup in the size of the problem.
+%and that the following conditions hold:
+%\begin{itemize}[leftmargin=10em]
+%%\item[\textbf{(Linear blowup)}] $size(G') \le c \cdot size(G)$ and $|\Sigma_0| = O(1)$.
+%\item[\textbf{(Linear blowup)}] $|G'| \le c \cdot |G|$ and $|\Sigma_0| = O(1)$.
+%\item[\textbf{(Completeness)}] $\UNSAT(G)=0 \implies \UNSAT(G')=0$.
+%\item[\textbf{(Soundness)}] $\UNSAT(G')\ge \min\{2\cdot\UNSAT(G), \alpha\}$.
+%\end{itemize}
+Due to space limitations, we will only briefly highlight some
+aspects of the proof idea.
 
 \subsection{Expanders}
 
 Let $G = (V, E)$ be a finite, undirected, $d$-regular graph.
-Let $L$ be the normalized Laplacian of $G$ with eigenvalues
-$0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n \le 2$
-counted with multiplicity.
+For any subset of vertices $S \subseteq V$,
+let $e(S, \bar{S}) = |(S\times \bar{S})\cap E|$ equal the number of edges
+between $S$ and its complement $\bar{S} \equiv V - S$ and
 %For any $S, T \subseteq V$, let
 %$G(S)$ denote the subgraph of $G$ induced by $S$ and let $e(S, T)$
 %be the number of edges with one endpoint in $S$ and one endpoint
@@ -428,17 +573,21 @@ counted with multiplicity.
 %$S$ in $B$, and $\notsout$ denote complement of $S$ not in $B$.
 %Note that $\{\notsin, \notsout\}$ is a partition of $\nots$
 %(i.e., $\nots = \notsin \cup \notsout$ and $\notsin \cap \notsout = \emptyset$).
-For any subset of vertices $S \subseteq V$ let
+let
 \begin{align*}
-\phi(S) \;\eqdef\; \frac{|\{\text{edges between } S \text{ and } V - S\}|}{d\cdot |S|}
+\phi(S) \;\eqdef\; \frac{e(S, \bar{S})}{|S|} %|\{\text{edges between } S \text{ and } V - S\}|}{d\cdot |S|}
 \end{align*}
-be the \emph{expansion} of $S$ in $G$.
+be the \emph{edge expansion} of $S$ in $G$.
 We say $G$ is an $(\eta, d)$-expander if $G$ is $d$-regular and
 every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
 %The \emph{expansion} of $G$ is
 %\begin{align*}
 %\phi(G) \eqdef \min_{\substack{S \subseteq V \\ 0 < |S| \le \frac{|V|}{2}}} \phi(S).
 %\end{align*}
+
+Let $L$ be the normalized Laplacian of $G$ with eigenvalues
+$0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n \le 2$
+counted with multiplicity.
 
 \begin{theorem}[Hitting Property of Expander Walks]
 If $G$ is a regular digraph with spectral expansion $1 - \lambda$, then for any $B \subset V(G)$
@@ -448,6 +597,12 @@ steps in $G$ starting in a uniformly random vertex $V_1$ always remains in $B$ i
 \Pr\left[\wedge_{i=1}^t V_i \in B\right] \le (\mu + \lambda \cdot (1 - \mu))^t.\\
 \end{align*}
 \end{theorem}
+
+\subsection{Preprocess $\prep(G)$}
+
+\subsection{Amplify $\prep(G)^t$}
+
+\subsection{Compose $\prep(G)^t \circ \mathcal{P}$}
 
 \bibliographystyle{plainnat}
 \bibliography{final}
