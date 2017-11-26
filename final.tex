@@ -77,7 +77,7 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % PLEASE MODIFY THESE FIELDS AS APPROPRIATE
 \newcommand{\problemsetnum}{4}          % problem set number
-\newcommand{\duedate}{November 30, 2017}  % problem set deadline
+\newcommand{\duedate}{December 3, 2017}  % problem set deadline
 \newcommand{\studentname}{K. Jarrod Millman}    % full name of student (i.e., you)
 % PUT HERE ANY PACKAGES, MACROS, etc., ADDED BY YOU
 
@@ -259,16 +259,18 @@ such that for all $x \in \bits^*$ the following holds:
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad V(x, \pi) \text{ rejects}$.
 \end{itemize}
 %\end{definition}
-You can imagine the verifier checking that each sentence of the proof
-is an axiom or derived from previous sentences in the proof to see that
-this definition corresponds to a system of logic.
+Imagine the verifier $V$ checking that each sentence of the proof $\pi$
+is an axiom or derived from previous sentences in the proof to see how
+this corresponds to a system of logic.
 
 Since $V$ runs in polynomial time in $|x|$, we must have
 $|\pi| \le p(|x|)$ for some polynomial $p$.
 It is clear---from the verifier-based definition of $\NP$---that traditional proof
 systems are an equivalent characterization of $\NP$.
-So we may view the theory of $\NP$-completeness as providing a collection of
-equivalent systems for writing proofs. 
+%So we may view the theory of $\NP$-completeness as providing a collection of
+%equivalent systems for writing proofs. 
+The PCP Theorem provides another characterization of $\NP$.
+To state the PCP Theorem requires defining probabilistically checkable proofs.
 
 %...
 %
@@ -296,17 +298,17 @@ for all input $x$ of size $n$ and every proof $\pi$, $V^\pi(x)$ makes at most $q
 to $\pi$ and uses at most $r(n)$ random bits.
 \end{definition}
 
-With these $(r(n), q(n))$-restricted verifiers, we define the following complexity classes.
+With these $(r, q)$-restricted verifiers, we define the following complexity classes.
 
 \begin{definition}[PCP complexity classes]
-A language $L\in\bits^*$ is in $\PCP[r(n), q(n)]$ if there is a
+A language $L\subseteq\bits^*$ is in $\PCP[r(n), q(n)]$ if there is a
 $(r(n), q(n))$-restricted verifier $V$ such that
 \begin{itemize}[leftmargin=10em]
 \item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad \Pr[V^\pi(x) \text{ accepts}] = 1$.
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
 \end{itemize}
 \end{definition}
-We use the notation $\PCP_s[r(n), q(n)]$ to indicate that the \emph{soundness error} is $s$ and not $1/2$.
+We use the notation $\PCP_s[r(n), q(n)]$ to indicate the \emph{soundness error} is $s$ and not $1/2$.
 
 To get a sense of how these classes relate to more standard complexity classes,
 note that setting the parameters to $0$ yields the following trivial equivalences:
@@ -315,8 +317,8 @@ note that setting the parameters to $0$ yields the following trivial equivalence
 \NP &= \PCP[0, \poly(n)] \\
 \coRP &= \PCP[\poly(n), 0].
 \end{align*}
-More interestingly, since we can derandomize any probabilistic polynomial-time algorithm
-using $O(\log n)$ random bits by enumeration, we have
+More interestingly, since we can derandomize (by enumeration) any probabilistic polynomial-time algorithm
+using $O(\log n)$ random bits, we have
 $$
 \PCP[O(\log n), O(1)] \subseteq \NP.
 $$
@@ -333,7 +335,7 @@ $$
 \NP \subseteq \PCP[O(\log n), O(1)]
 $$
 to prove the PCP theorem.
-To see an outline of Dinur's proof of this fact, we first need to briefly
+To outline of Dinur's proof of this fact, we must first
 discuss hardness of approximation for constraint satisfaction.
 
 \subsection{PCPs and Approximations}
@@ -366,11 +368,11 @@ where $m=|E|$ (since at least one edge must be monochromatic).
 $\MAX$ $3\COL$ is the problem of finding a 3-coloring that minimizes the
 number of monochromatic edges of a graph.
 This problem is $\NP$-hard by the obvious reduction from the corresponding
-decision problem $3\COL$.
+$3\COL$ decision problem.
 Let $\opt_{\MAX\text{ }3\COL}(G)$ denote the optimal solution to $\MAX$ $3\COL$
 on input $G$.
-An algorithm $A$ is an \emph{$\varepsilon$-approximation} algorithm for
-$\MAX$ $3\COL$ if for every graph $G$, $A(G)$ returns a 3-coloring
+An algorithm $A$ is an \emph{$\varepsilon$-approximation} $\MAX$ $3\COL$ algorithm
+if for every graph $G$, $A(G)$ returns a 3-coloring
 satisfying at least $\varepsilon \cdot \opt_{\MAX\text{ }3\COL}(G)$
 edge constraints.
 A natural question is whether there exist polynomial time $\varepsilon$-approximation
@@ -408,8 +410,8 @@ An assignment $\sigma$ satisfies $G$ if every edge $\{u, v\} \in E$
 is satisfied by $(\sigma(u), \sigma(v))$.
 For any assignment $\sigma$, we define
 \begin{align*}
-\UNSAT_\sigma(G) &\eqdef \Pr_{\{u, v\} \in E} \big[(\sigma(u), \sigma(v)) \notin c_{\{u, v\}}\big] \\
-  &= \frac{\big|\{e \in E \;:\; \sigma \text{ does not satisfy } c_e\}\big|}{|E|}
+\UNSAT_\sigma(G) \;\eqdef\; \Pr_{\{u, v\} \in E} \big[(\sigma(u), \sigma(v)) \notin c_{\{u, v\}}\big] 
+  \;=\; \frac{\big|\{e \in E \;:\; \sigma \text{ does not satisfy } c_e\}\big|}{|E|}
 \end{align*}
 and
 \begin{align*}
@@ -447,25 +449,25 @@ $G' = (V', E', \Sigma_0, \mathcal{C}')$ such that
 \end{itemize}
 \end{theorem}
 In other words, the efficient construction preserves completeness, doubles
-soundness, and only incurs a linear blowup in the size of the problem.
+soundness, and incurs only a linear blowup in the size of the problem.
 
 We discuss Dinur's proof of this in the next section.
-For now, let's see how this theorem gives us a proof of the PCP Theorem.
+For now, let's see how it implies the PCP Theorem.
 
 \begin{corollary}[PCP Theorem, Alternative Formulation]\label{corollary}
 $\GAPSAT$ is $\NP$-hard.
 \end{corollary}
 
-We first state and prove the following lemma.
+First we state and prove the following lemma.
 
 \begin{lemma}\label{csg-hard} It is $\NP$-hard to decide if $\UNSAT(G)=0$ given
 a constraint graph satisfaction problem with $|\Sigma| = 3$.
 \end{lemma}
 
 \begin{proof}%We reduce from the $\NP$-complete problem of graph 3-coloring.
-Let $G$ be an instance of the $\NP$-complete problem of graph 3-coloring.
+Let $G = (V,E)$ be an instance of the $\NP$-complete $3\COL$ problem.
 Construct a constraint graph $G'=(V, E, \Sigma, \mathcal{C})$ with
-$G = (V,E)$ as its underlying graph as follows:
+$G$ as its underlying graph as follows:
 Let the alphabet be $\Sigma = \{1, 2, 3\}$ for the 3 colors and place
 inequality constraints on each edge of the graph.
 Clearly, $G$ is 3-colorable exactly when $\UNSAT(G')=0$.
@@ -489,7 +491,7 @@ graph constructed from $G_{i-1}$ for $i\ge 1$.
 \end{proof_of}
 
 Finally, we show that Corollary~\ref{corollary} implies $\NP \subseteq \PCP[O(\log n),O(1)]$
-and, thus, Theorem~\ref{pcp}.\footnote{
+and thus Theorem~\ref{pcp}.\footnote{
 Corollary~\ref{corollary} and Theorem~\ref{pcp} are equivalent, but given space limitations
 we will not prove the other implication.}
 In the proof of Corollary~\ref{corollary}, we demonstrated a polynomial-time
@@ -533,19 +535,20 @@ we construct another constraint graph $G'$
 %\end{align}
 %such that $G' = (V', E', \Sigma_0, \mathcal{C}')$ for some appropriately
 %choosen $t\in \N$
-in three steps:
+with three operations:
 \begin{center}
 \begin{tabular}{l l p{10cm}}
-1. & $\prep(G)$ & \textbf{Preprocess} Ensure the graph has a ``nice'' structure
-                   (i.e., $d$-regular, same alphabet as $G$, rougly the same unsat-value). \\
-2. & $\prep(G)^t$ & \textbf{Power} Amplify the
-                    unsat-value at the expense of increasing the alphabet. \\
-3. & $\prep(G)^t \circ \mathcal{P}$ & \textbf{Compose} Reduce the alphabet while roughly
+1. & $\prep(G)$ & \textbf{Preprocess} returns a ``nice'' (i.e., a $d$-regular expander)
+       constraint graph with the same alphabet as $G$ and roughly the same unsat-value.\\
+2. & $\prep(G)^t$ & \textbf{Power} returns a constraint graph with an amplified
+                    unsat-value and an increased alphabet. \\
+3. & $\prep(G)^t \circ \mathcal{P}$ & \textbf{Compose} returns a constraint graph with a reduced alphabet while roughly
                    preserving the unsat-value.
 \end{tabular}
 \end{center}
 Once we have made these three operations precise,
-proving Theorem~\ref{dinursthm} requires showing that $G' = \prep(G)^t \circ \mathcal{P}$ is efficiently
+proving Theorem~\ref{dinursthm} (Dinur's Main Theorem)
+requires showing that $G' = \prep(G)^t \circ \mathcal{P}$ is efficiently
 computable, preserves completeness, doubles soundness, and only
 incurs a linear blowup in the size of the problem.
 %and that the following conditions hold:
@@ -555,10 +558,16 @@ incurs a linear blowup in the size of the problem.
 %\item[\textbf{(Completeness)}] $\UNSAT(G)=0 \implies \UNSAT(G')=0$.
 %\item[\textbf{(Soundness)}] $\UNSAT(G')\ge \min\{2\cdot\UNSAT(G), \alpha\}$.
 %\end{itemize}
-Due to space limitations, we will only briefly highlight some
-aspects of the proof idea.
+However, due to space limitations, we will only briefly highlight some
+aspects of the construction and proof idea.
 
 \subsection{Expanders}
+
+Expanders have proven useful in many applications
+and are employed in both the preprocessing $\prep(G)$ and powering $\prep(G)^t$ operations
+of the construction.
+Intuitively expanders are sparse graphs (i.e., graphs with very few edges)
+which are as \emph{nearly} well connected as complete graphs (i.e., graphs with all possible edges).
 
 Let $G = (V, E)$ be a finite, undirected, $d$-regular graph.
 For any subset of vertices $S \subseteq V$,
@@ -578,8 +587,18 @@ let
 \phi(S) \;\eqdef\; \frac{e(S, \bar{S})}{|S|} %|\{\text{edges between } S \text{ and } V - S\}|}{d\cdot |S|}
 \end{align*}
 be the \emph{edge expansion} of $S$ in $G$.
-We say $G$ is an $(\eta, d)$-expander if $G$ is $d$-regular and
-every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
+We say $G$ is an \emph{expander} if it has ``large'' expansion.
+Clearly a complete graph has large expansion.
+Fortunately, sparse expanders (i.e., $d$-regular expanders
+for some fixed $d$) exist and can be explicitly constructed.
+
+\begin{lemma}[Constant-Degree Expanders]
+Can construct constant degree expanders\citep*{reingold2002entropy}
+\end{lemma}
+
+
+It is not immediately clear that sparse graphs
+
 %The \emph{expansion} of $G$ is
 %\begin{align*}
 %\phi(G) \eqdef \min_{\substack{S \subseteq V \\ 0 < |S| \le \frac{|V|}{2}}} \phi(S).
@@ -588,6 +607,16 @@ every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
 Let $L$ be the normalized Laplacian of $G$ with eigenvalues
 $0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n \le 2$
 counted with multiplicity.
+
+\begin{lemma}[Cheeger's Inequality]
+\end{lemma}
+
+large expansion is equivalent to a large spectral gap
+
+We say $G$ is an $(\eta, d)$-expander if $G$ is $d$-regular and
+every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
+
+
 
 \begin{theorem}[Hitting Property of Expander Walks]
 If $G$ is a regular digraph with spectral expansion $1 - \lambda$, then for any $B \subset V(G)$
@@ -598,11 +627,65 @@ steps in $G$ starting in a uniformly random vertex $V_1$ always remains in $B$ i
 \end{align*}
 \end{theorem}
 
-\subsection{Preprocess $\prep(G)$}
 
-\subsection{Amplify $\prep(G)^t$}
+\subsection{Graph Operations}
 
-\subsection{Compose $\prep(G)^t \circ \mathcal{P}$}
+Finally, to outline how Dinur's transformation
+\begin{align*}
+\prep(G)^t \circ \mathcal{P} : G \mapsto G'
+\end{align*}
+works, we briefly discuss (without proof) the three composed operations in her reduction:
+$$
+\underbrace{G \mapsto H}_\text{preprocess} \quad\text{then}\quad
+\underbrace{H \mapsto H'}_\text{power} \quad\text{then}\quad
+\underbrace{H' \mapsto G'}_\text{compose}.
+$$
+Excluding the preprocessing step, Dinur's construction balances two
+competing transformations.  The first (power) greatly amplifies
+the gap between the unsat-value of satisfiable and unsatisfiable
+instances at the expense of increasing the alphabet size,
+while the second (compose) reduces the alphabet size while only
+modestly decreasing that greatly increased gap.
+
+As we saw in the proof of Corollary~\ref{dinursthm}, we will iteratively apply
+Dinur's transformation $\log m$ times (starting from an initial constraint graph
+$G_0$ with $m$ edges) to get a sequence of graphs $G_0, G_1, \dots, G_{\log m}$.
+So to ensure
+$$
+|G_{\log m}| \le \poly(|G_0|)
+$$
+requires that $|G_{i+1}|$ is at most some constant factor larger
+than $|G_i|$ for every $i$.
+
+\subsubsection*{Preprocess $\prep(G)$}
+
+The preprocessing operation $G \mapsto H$ is performed in two steps.
+The first step $G \mapsto H_1$ returns a constant-degree constraint graph $H_1$.
+While, the second step $H_1 \mapsto H$ ensures that the constraint graph $H$
+is ... 
+
+\begin{enumerate}
+\item \textbf{Sparsify} $G \mapsto H_1$
+
+degree-reduction uses the standard expander replacement technique of \cite{papadimitriou1991optimization}
+
+\item \textbf{Expanderize} $H_1 \mapsto H$
+
+\end{enumerate}
+
+\subsubsection*{Power $\prep(G)^t$}
+
+The powering operation $H \mapsto H'$ amplifies the gap ...
+
+critical step and the main novelty
+
+error reduction
+
+\subsubsection*{Compose $\prep(G)^t \circ \mathcal{P}$}
+
+Lastly, the compose operation $H' \mapsto G'$ shrinks the alphabet size ...
+
+alphabet-reduction
 
 \bibliographystyle{plainnat}
 \bibliography{final}
