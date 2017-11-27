@@ -110,6 +110,7 @@
 \newcommand{\Z}{{\mathbf Z}}
 \newcommand{\F}{{\mathbf F}}
 \newcommand{\Q}{{\mathbf Q}}
+\newcommand{\R}{{\mathbf R}}
 \newcommand{\Time}{\operatorname{time}}
 \newcommand{\poly}{{\mathrm{poly}}}
 \newcommand{\polylog}{{\mathrm{polylog}}}
@@ -167,6 +168,7 @@
 
 \newcommand{\opt}{{\operatorname{opt}}}
 \newcommand{\prep}{{\operatorname{prep}}}
+\newcommand{\cloud}{{\operatorname{cloud}}}
 \newcommand{\negl}{{\mathrm{neg}}}
 \newcommand{\Diam}{\mathrm{Diam}}
 \newcommand{\Cut}{\mathrm{Cut}}
@@ -395,7 +397,7 @@ over the variables by creating an edge for each constraint in the natural way.
 \begin{definition}[Constraint Graph] A constraint graph is a tuple
 $G = (V, E, \Sigma, \mathcal{C})$ where
 \begin{enumerate}
-\item The ordered pair $(V, E)$ is an undirected graph called the underlying
+\item The ordered pair $(V, E)$ is an undirected graph\footnote{Unless stated otherwise, we allow multiple edges and self-loops.} called the underlying
   graph of $G$.
 \item Each vertex in $V$ takes values in the finite set $\Sigma$
   called the alphabet of $G$.
@@ -493,7 +495,7 @@ graph constructed from $G_{i-1}$ for $i\ge 1$.
 Finally, we show that Corollary~\ref{corollary} implies $\NP \subseteq \PCP[O(\log n),O(1)]$
 and thus Theorem~\ref{pcp}.\footnote{
 Corollary~\ref{corollary} and Theorem~\ref{pcp} are equivalent, but given space limitations
-we will not prove the other implication.}
+we will prove only one of the implications.}
 In the proof of Corollary~\ref{corollary}, we demonstrated a polynomial-time
 Karp reduction from the constraint graph satisfaction problem with
 $|\Sigma| = 3$ to $\GAPSAT$.
@@ -538,11 +540,11 @@ we construct another constraint graph $G'$
 with three operations:
 \begin{center}
 \begin{tabular}{l l p{10cm}}
-1. & $\prep(G)$ & \textbf{Preprocess} returns a ``nice'' (i.e., a $d$-regular expander)
+1. & $\boldsymbol{\prep}(G)$ & \textbf{Preprocess} returns a ``nice'' (i.e., a $d$-regular expander)
        constraint graph with the same alphabet as $G$ and roughly the same unsat-value.\\
-2. & $\prep(G)^t$ & \textbf{Power} returns a constraint graph with an amplified
+2. & $\prep(G)^{\boldsymbol{t}}$ & \textbf{Power} returns a constraint graph with an amplified
                     unsat-value and an increased alphabet. \\
-3. & $\prep(G)^t \circ \mathcal{P}$ & \textbf{Compose} returns a constraint graph with a reduced alphabet while roughly
+3. & $\prep(G)^t \boldsymbol{\circ \mathcal{P}}$ & \textbf{Compose} returns a constraint graph with a reduced alphabet while roughly
                    preserving the unsat-value.
 \end{tabular}
 \end{center}
@@ -587,52 +589,102 @@ let
 \phi(S) \;\eqdef\; \frac{e(S, \bar{S})}{|S|} %|\{\text{edges between } S \text{ and } V - S\}|}{d\cdot |S|}
 \end{align*}
 be the \emph{edge expansion} of $S$ in $G$.
-We say $G$ is an \emph{expander} if it has ``large'' expansion.
-Clearly a complete graph has large expansion.
-Fortunately, sparse expanders (i.e., $d$-regular expanders
-for some fixed $d$) exist and can be explicitly constructed.
+Informally, we say $G$ is an \emph{expander} if it has ``large'' expansion.
+Clearly, the complete graph has large expansion.
+Fortunately, not only do sparse (i.e., $d$-regular) expanders exist,
+but we know how to efficiently construct them.
+Before stating this formally, we present an alternative definition of
+expanders, which will be more convenient to work with.
 
-\begin{lemma}[Constant-Degree Expanders]
-Can construct constant degree expanders\citep*{reingold2002entropy}
+Let $A$ be the \emph{adjacency matrix} of $G$.
+Note that $A$ is a real-valued, symmetric $n \times n$ matrix,
+so it has $n$ real-valued eigenvalues $\lambda_1 \ge \lambda_2 \ge \dots \ge \lambda_n$
+(counting multiplicities).
+Since $G$ is $d$-regular, all eigenvalues of $A$ are at most $d$ in absolute value.
+It is also easy to see that $\lambda_1=d$ with associated
+eigenvector $x_1 = 1/\sqrt{n}$.
+
+\begin{definition}[Spectral Expansion]
+We say $G$ is an $(n, \lambda, d)$-expander if $G$ is a $d$-regular graph
+on $n$ vertices with $\lambda \ge \max \{|\lambda_i| \;:\; i \neq 1\}$
+and $\lambda < d$.
+\end{definition}
+
+Roughly speaking, large edge expansion is equivalent to a large spectral gap (i.e., $d - \lambda$).
+
+\begin{lemma}%[Cheeger's Inequality]
+For any $(n, \lambda, d)$-expander with edge expansion $\phi$, the following holds
+$$
+\frac{\phi^2}{2d} \le d - \lambda \le 2\phi.
+$$
 \end{lemma}
 
+We repeatedly rely on the existence of polynomial-time algorithms
+to construct families of constant degree expanders.
 
-It is not immediately clear that sparse graphs
+\begin{lemma}[Constant-Degree Expanders]\label{expandersexist}
+There are universal constants $d \ge 3$ and $\lambda < d$ such that there
+is an explicitly constructable %(i.e., polynomial-time computable)
+family $\{G_n\}_{n\in \N}$ of $(n, \lambda, d)$-expanders.% (e.g., see \cite*{reingold2002entropy}).
+\end{lemma}
+
+One nice aspect of the spectral definition of
+expansion comes from the variational definition of the eigenvalues
+of symmetric matrices given by the Courant--Fisher Theorem.
+In particular, given the adjacency matrix $A$ of any $(n, \lambda, d)$-expander
+and any vector $x \in \R^n$ such that $\|x\| = 1$, we have that
+$$
+\lambda \ge \max_{x \perp 1} \langle Ax, x\rangle. %{\substack{\|x\| =1 \\ x \perp 1}} \langle Ax, x\rangle.
+$$
+To gain an appreciation for how this fact is used, we state and prove a
+fact we will use in the preprocessing operation.
+
+\begin{lemma}[Union Graph]\label{union}
+Let $G$ be an $(n, \lambda, d)$-expander and $H$ be an $(n, \lambda', d')$-expander.
+Then the \emph{union graph} $G' = G \cup H = (V, E_G \cup E_H)$ is an
+$(n, \lambda + \lambda', d+d')$-expander.
+\end{lemma}
+
+\begin{proof}
+By construction $G'$ is a $(d+d')$-regular graph on $n$ vertices.
+Let $A_G, A_H, A_{G'}$ be the adjacency matrices of $G, H, G'$ respectively.
+%Usin basic facts about inner products 
+We get the desired spectral expansion
+as follows
+$$
+\langle (A_{G'})x, x\rangle
+  \;=\; \langle (A_G+A_H)x, x\rangle
+  \;=\; \langle (A_G)x, x\rangle + \langle (A_H)x, x\rangle
+  \;\le\; \lambda + \lambda'
+$$
+for any vector $x \in \R^n$ such that $\|x\| = 1$ and $x \perp 1$.
+\end{proof}\\
+
+Another useful property of expanders is that random walks mix well and
+thus have good hitting properties such as the following lemma. 
 
 %The \emph{expansion} of $G$ is
 %\begin{align*}
 %\phi(G) \eqdef \min_{\substack{S \subseteq V \\ 0 < |S| \le \frac{|V|}{2}}} \phi(S).
 %\end{align*}
 
-Let $L$ be the normalized Laplacian of $G$ with eigenvalues
-$0 = \lambda_1 \le \lambda_2 \le \dots \le \lambda_n \le 2$
-counted with multiplicity.
-
-\begin{lemma}[Cheeger's Inequality]
+\begin{lemma}[Hitting Property of Expander Walks]
+If $G$ is a $(n, \lambda, d)$-expander, then for any subset of edges $F \subset E$
+of density $\mu$, the probability that a random walk starting from a random edge
+in $F$ takes its $i+1$st step in $F$ is at most
+$$
+\mu + \left(\frac{|\lambda|}{d}\right)^i.
+$$
 \end{lemma}
 
-large expansion is equivalent to a large spectral gap
-
-We say $G$ is an $(\eta, d)$-expander if $G$ is $d$-regular and
-every $S \subset V$ such that $|S| \le |V|/2$ has expansion $\phi(S) \ge \eta$.
-
-
-
-\begin{theorem}[Hitting Property of Expander Walks]
-If $G$ is a regular digraph with spectral expansion $1 - \lambda$, then for any $B \subset V(G)$
-of density $\mu$, the probability that a random walk $(V_1, \dots, V_t)$ of $t - 1$
-steps in $G$ starting in a uniformly random vertex $V_1$ always remains in $B$ is
-\begin{align*}
-\Pr\left[\wedge_{i=1}^t V_i \in B\right] \le (\mu + \lambda \cdot (1 - \mu))^t.\\
-\end{align*}
-\end{theorem}
-
+Since $|\lambda|<d$, this probability is ``nearly equal'' to the density of
+$F$ in $E$ for large $i$.
 
 \subsection{Graph Operations}
 
-Finally, to outline how Dinur's transformation
+To outline how Dinur's transformation
 \begin{align*}
-\prep(G)^t \circ \mathcal{P} : G \mapsto G'
+\prep(G)^t \circ \mathcal{P} \;:\; G \mapsto G'
 \end{align*}
 works, we briefly discuss (without proof) the three composed operations in her reduction:
 $$
@@ -667,9 +719,36 @@ is ...
 \begin{enumerate}
 \item \textbf{Sparsify} $G \mapsto H_1$
 
-degree-reduction uses the standard expander replacement technique of \cite{papadimitriou1991optimization}
+This degree-reduction step uses the expander replacement technique of
+\cite{papadimitriou1991optimization}.
+Each vertex $v$ in graph $G$ is \emph{replaced} with an $(n, \lambda_1, d_1)$-expander
+$\cloud(v)$ in graph $H_1$ (by Lemma~\ref{expandersexist})
+with an equality constraint for each edge in $\cloud(v)$.
+For each edge $\{u,v\}$ in $G$ an edge in $H_1$ (with its constraint)
+connects one vertex from $\cloud(u)$ with one vertex in $\cloud(v)$.
+Thus, $H_1$ is a $(d_1+1)$-regular graph on $2\cdot|E|$ vertices.
+The alphabet stays the same.
+Clearly, $\UNSAT(G)=0 \implies \UNSAT(H_1)=0$ and $|H_1|=O(|G|)$.
+It can also be shown that there exists a constant $c>0$ such that
+$$
+c\cdot\UNSAT(G) \le \UNSAT(H_1) \le \UNSAT(G). 
+$$
 
 \item \textbf{Expanderize} $H_1 \mapsto H$
+
+This step returns the union of $H_1$ and a $(2\cdot|E|, \lambda_1, d_1)$-expander
+as in Lemma~\ref{union}.
+Thus, $H$ is a $(2\cdot|E|, \lambda_1 + d_1 + 1, 2\cdot d_1 + 1)$-expander.
+Add trivial constraints (i.e., constraints which are always satisfied)
+to each edge contributed by the constant degree expander.
+The alphabet stays the same.
+%then it is clear that 
+Clearly, $\UNSAT(H_1)=0 \implies \UNSAT(H)=0$
+and $|H|=O(|H_1|)$.
+It can also be shown that there exists a constant $c_1>0$ such that
+$$
+c_1\cdot\UNSAT(H_1) \le \UNSAT(H) \le \UNSAT(H_1). 
+$$
 
 \end{enumerate}
 
@@ -686,6 +765,8 @@ error reduction
 Lastly, the compose operation $H' \mapsto G'$ shrinks the alphabet size ...
 
 alphabet-reduction
+
+\newpage
 
 \bibliographystyle{plainnat}
 \bibliography{final}
