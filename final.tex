@@ -1,6 +1,7 @@
 \documentclass{article}
 \usepackage[T1]{fontenc}
-\usepackage{amssymb, amsmath, graphicx, subfigure}
+\usepackage{amsmath}
+\usepackage{amssymb, graphicx, subfigure}
 \usepackage{diagbox}
 \usepackage{hyperref}
 \usepackage{enumitem}
@@ -62,6 +63,8 @@
 \newenvironment{proof}{\noindent{\bf Proof:} \hspace*{1mm}}{
 	\hspace*{\fill} $\Box$ }
 \newenvironment{proof_of}[1]{\noindent {\bf Proof of #1:}
+	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
+\newenvironment{proof_idea}{\noindent {\bf Proof Idea:}
 	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
 \newenvironment{proof_claim}{\begin{quotation} \noindent Proof: \hspace*{1mm}}{
 	\hspace*{\fill} $\diamond$ \end{quotation}}
@@ -187,12 +190,21 @@
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 \abstract{\cite{radhakrishnan2007dinur} discuss the proof by
-\cite{dinur2007pcp} of the PCP theorem.}
+\cite{dinur2007pcp} of the PCP theorem.
+Dinur's proof roughly takes the form:
+Let $G_0$ be a constraint graph encoding a $3\SAT$ instance.
+Fix $t=O(1)$.
+%Set $G_0=G$.
+For a PCP reduction $\mathcal{P}$ (to be described) repeat the following $\log|G_0|$ times:
+\begin{align*}
+G_{i+1}=G_i^t \circ \mathcal{P}.
+\end{align*} }
 
 \section{Introduction}
 
-In class, we discussed interactive proof systems introduced by
-\citet*{goldwasser1989knowledge}.
+In class, we discussed\footnote{It was lucky coincidence that the fun "advanced" topic
+was succinct arguments and PCPs.}
+interactive proof systems introduced by \citet*{goldwasser1989knowledge}.
 In particular, we saw we could view $\NP$ as a simple proof system with a
 deterministic polynomial-time verifier interacting with an all-powerful prover.
 We also saw that by providing the verifier access to randomness and assuming
@@ -209,7 +221,7 @@ probabilistic proof systems.
 were closely related to hardness of approximations.
 Building on this relationship, \citet*{arora1998probabilistic} and
 \citet*{arora1998proof} proved the PCP Theorem, which shows that a
-probabilistic verifier with logarithmic randomness and constant number of
+probabilistic verifier with logarithmic randomness and a constant number of
 queries provides a new way of characterizing $\NP$.
 The original proof was algebraic and difficult.  \cite{dinur2007pcp} provided a
 relatively simple, new proof with a combinatorial flavor.
@@ -265,14 +277,14 @@ Imagine the verifier $V$ checking that each sentence of the proof $\pi$
 is an axiom or derived from previous sentences in the proof to see how
 this corresponds to a system of logic.
 
-Since $V$ runs in polynomial time in $|x|$, we must have
+Since $V$ runs in polynomial time in $|x|$, we have
 $|\pi| \le p(|x|)$ for some polynomial $p$.
 It is clear---from the verifier-based definition of $\NP$---that traditional proof
 systems are an equivalent characterization of $\NP$.
 %So we may view the theory of $\NP$-completeness as providing a collection of
 %equivalent systems for writing proofs. 
 The PCP Theorem provides another characterization of $\NP$.
-To state the PCP Theorem requires defining probabilistically checkable proofs.
+Before stating the PCP Theorem, we discuss probabilistically checkable proofs.
 
 %...
 %
@@ -291,11 +303,10 @@ To state the PCP Theorem requires defining probabilistically checkable proofs.
 
 \subsection{Probabilistically Checkable Proofs}
 
-We start by giving the verifier access to randomness and oracle access to the
-proof.
+We give the verifier access to randomness and oracle access to the proof.
 
 \begin{definition}[$(r, q)$-restricted verifier]
-A probabilistic polynomial time oracle algorithm $V$ is a \emph{$(r(n), q(n))$-restricted verifier} if,
+A probabilistic polynomial time oracle algorithm $V$ is a \emph{$(r, q)$-restricted verifier} if,
 for all input $x$ of size $n$ and every proof $\pi$, $V^\pi(x)$ makes at most $q(n)$ oracle queries
 to $\pi$ and uses at most $r(n)$ random bits.
 \end{definition}
@@ -304,7 +315,7 @@ With these $(r, q)$-restricted verifiers, we define the following complexity cla
 
 \begin{definition}[PCP complexity classes]
 A language $L\subseteq\bits^*$ is in $\PCP[r(n), q(n)]$ if there is a
-$(r(n), q(n))$-restricted verifier $V$ such that
+$(r, q)$-restricted verifier $V$ such that
 \begin{itemize}[leftmargin=10em]
 \item[\textbf{(Completeness)}] $\;x \in\; L \;\implies\; \exists \pi \quad \Pr[V^\pi(x) \text{ accepts}] = 1$.
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
@@ -319,7 +330,7 @@ note that setting the parameters to $0$ yields the following trivial equivalence
 \NP &= \PCP[0, \poly(n)] \\
 \coRP &= \PCP[\poly(n), 0].
 \end{align*}
-More interestingly, since we can derandomize (by enumeration) any probabilistic polynomial-time algorithm
+Since we can derandomize (\emph{via} enumeration) any probabilistic polynomial-time algorithm
 using $O(\log n)$ random bits, we have
 $$
 \PCP[O(\log n), O(1)] \subseteq \NP.
@@ -337,7 +348,7 @@ $$
 \NP \subseteq \PCP[O(\log n), O(1)]
 $$
 to prove the PCP theorem.
-To outline of Dinur's proof of this fact, we must first
+To outline of Dinur's proof of this fact, we first
 discuss hardness of approximation for constraint satisfaction.
 
 \subsection{PCPs and Approximations}
@@ -382,9 +393,8 @@ algorithms for $\MAX$ $3\COL$ for every $\varepsilon<1$.
 Or is there a universal constant $\varepsilon_0$ such that it is
 $\NP$-hard to find a 3-coloring satisfying at least $\varepsilon_0 \cdot \opt_{\MAX\text{ }3\COL}(G)$
 edge constraints?
-\fixme{Say something about gap problems?}
 
-More generally, given any two-variable constraint system (i.e., one where each
+Given any two-variable constraint system (i.e., one where each
 constraint involves at most two variables), we can construct a constraint graph
 over the variables by creating an edge for each constraint in the natural way.
 
@@ -397,11 +407,11 @@ over the variables by creating an edge for each constraint in the natural way.
 \begin{definition}[Constraint Graph] A constraint graph is a tuple
 $G = (V, E, \Sigma, \mathcal{C})$ where
 \begin{enumerate}
-\item The ordered pair $(V, E)$ is an undirected graph\footnote{Unless stated otherwise, we allow multiple edges and self-loops.} called the underlying
-  graph of $G$.
-\item Each vertex in $V$ takes values in the finite set $\Sigma$
-  called the alphabet of $G$.
-\item Each edge $e \in E$ has a constraint $c_e \subseteq \Sigma^2$ and
+\item the ordered pair $(V, E)$ is an undirected graph\footnote{Unless stated otherwise, we allow multiple edges and self-loops.} called the underlying
+  graph of $G$,
+\item every vertex in $V$ takes values in the finite set $\Sigma$
+  called the alphabet of $G$, and
+\item each edge $e$  has a constraint $c_e \subseteq \Sigma^2$ and
   $\mathcal{C} = \{c_e\}_{e \in E}$.
 \end{enumerate}
 \end{definition}
@@ -426,7 +436,7 @@ We call $\UNSAT(G)$ the \emph{unsat-value} of $G$.
 The \emph{constraint graph satisfiability problem} is to decide whether
 a constraint graph admits a satisfying assignment.
 %Note that the \emph{size} of a description of $G$, denoted $size(G)$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
-Note that the \emph{size} of the input $G$, denoted $|G|$, is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
+Note that the \emph{size} of the input $G$ (denoted $|G|$) is $\Theta(|V|+|E|\cdot|\Sigma|^2)$.
 %By reducing from graph $k$-colorability, it is easy to see that
 %the constraint graph satisfiability problem is also $\NP$-hard.
 
@@ -436,7 +446,7 @@ Note that the \emph{size} of the input $G$, denoted $|G|$, is $\Theta(|V|+|E|\cd
 %graph, $\Sigma = \{1, 2, \dots, k\}$, and $c_{\{u, v\}} = 
 %\end{example}
 
-We are now ready to state Dinur's main theorem.
+We now state Dinur's main theorem.
 
 \begin{theorem}[Dinur's Main Theorem]\label{dinursthm}
 For all alphabets $\Sigma$ such that $|\Sigma| = O(1)$ there exists constants $c > 0$ and
@@ -450,17 +460,17 @@ $G' = (V', E', \Sigma_0, \mathcal{C}')$ such that
 \item[\textbf{(Soundness)}] $\UNSAT(G')\ge \min\{2\cdot\UNSAT(G), \alpha\}$.
 \end{itemize}
 \end{theorem}
-In other words, the efficient construction preserves completeness, doubles
-soundness, and incurs only a linear blowup in the size of the problem.
+In other words, this efficient construction preserves completeness, doubles
+soundness, and incurs a linear blowup in the size of the problem.
 
-We discuss Dinur's proof of this in the next section.
-For now, let's see how it implies the PCP Theorem.
+We discuss Dinur's proof in the next section.
+First, we see that it implies the PCP Theorem.
 
 \begin{corollary}[PCP Theorem, Alternative Formulation]\label{corollary}
 $\GAPSAT$ is $\NP$-hard.
 \end{corollary}
 
-First we state and prove the following lemma.
+We use the following lemma.
 
 \begin{lemma}\label{csg-hard} It is $\NP$-hard to decide if $\UNSAT(G)=0$ given
 a constraint graph satisfaction problem with $|\Sigma| = 3$.
@@ -503,15 +513,15 @@ $|\Sigma| = 3$ to $\GAPSAT$.
 %Since $\GAPSAT$ is $\NP$-hard, there exists a polynomial-time reduction $f$
 %from $L$ to $\GAPSAT$.
 On input $x$, the verifier runs the reduction  to obtain a $\GAPSAT$
-instance $\phi_x$.
+instance $\varphi_x$.
 The prover provides %a proof $\pi : V \to \bits$, which 
-a boolean assignment to the variables of $\phi_x$ as a candidate proof $\pi$
-that $\phi_x$ is satisfiable.
-The verifier randomly selects $O(1/\alpha)$ clauses of $\phi_x$ and
+a boolean assignment to the variables of $\varphi_x$ as a candidate proof $\pi$
+that $\varphi_x$ is satisfiable.
+The verifier randomly selects $O(1/\alpha)$ clauses of $\varphi_x$ and
 checks that they are satisfied by the assignment $\pi$.
-Let $m$ be the number of clauses in $\phi_x$.
+Let $m$ be the number of clauses in $\varphi_x$.
 The verifier uses $O(\log m \cdot 1/\alpha) = O(|x|)$ random bits
-to select $O(1/\alpha)$ clauses of $\phi_x$ and queries
+to select $O(1/\alpha)$ clauses of $\varphi_x$ and queries
 $O(1/\alpha)$ bits of $\pi$.
 Clearly,
 \begin{itemize}[leftmargin=10em]
@@ -566,7 +576,7 @@ aspects of the construction and proof idea.
 \subsection{Expanders}
 
 Expanders have proven useful in many applications
-and are employed in both the preprocessing $\prep(G)$ and powering $\prep(G)^t$ operations
+and are employed in both the preprocessing $\prep(G)$ and graph powering $\prep(G)^t$ operations
 of the construction.
 Intuitively expanders are sparse graphs (i.e., graphs with very few edges)
 which are as \emph{nearly} well connected as complete graphs (i.e., graphs with all possible edges).
@@ -594,7 +604,7 @@ Clearly, the complete graph has large expansion.
 Fortunately, not only do sparse (i.e., $d$-regular) expanders exist,
 but we know how to efficiently construct them.
 Before stating this formally, we present an alternative definition of
-expanders, which will be more convenient to work with.
+expansion, which will be more convenient to work with.
 
 Let $A$ be the \emph{adjacency matrix} of $G$.
 Note that $A$ is a real-valued, symmetric $n \times n$ matrix,
@@ -623,9 +633,9 @@ We repeatedly rely on the existence of polynomial-time algorithms
 to construct families of constant degree expanders.
 
 \begin{lemma}[Constant-Degree Expanders]\label{expandersexist}
-There are universal constants $d \ge 3$ and $\lambda < d$ such that there
+Universal constants $d_0 \ge 3$ and $\lambda_0<d_0$ exist such that there
 is an explicitly constructable %(i.e., polynomial-time computable)
-family $\{G_n\}_{n\in \N}$ of $(n, \lambda, d)$-expanders.% (e.g., see \cite*{reingold2002entropy}).
+family $\{G_n\}_{n\in \N}$ of $(n, \lambda_0, d_0)$-expanders.% (e.g., see \cite*{reingold2002entropy}).
 \end{lemma}
 
 One nice aspect of the spectral definition of
@@ -649,19 +659,20 @@ $(n, \lambda + \lambda', d+d')$-expander.
 By construction $G'$ is a $(d+d')$-regular graph on $n$ vertices.
 Let $A_G, A_H, A_{G'}$ be the adjacency matrices of $G, H, G'$ respectively.
 %Usin basic facts about inner products 
-We get the desired spectral expansion
-as follows
-$$
+%We get the desired spectral expansion
+%as follows
+For any $x \in \R^n$ such that $\|x\| = 1$ and $x \perp 1$,
+\begin{align*}
 \langle (A_{G'})x, x\rangle
   \;=\; \langle (A_G+A_H)x, x\rangle
   \;=\; \langle (A_G)x, x\rangle + \langle (A_H)x, x\rangle
-  \;\le\; \lambda + \lambda'
-$$
-for any vector $x \in \R^n$ such that $\|x\| = 1$ and $x \perp 1$.
-\end{proof}\\
+  \;\le\; \lambda + \lambda'.% \qedhere
+\end{align*}
+\end{proof}
 
-Another useful property of expanders is that random walks mix well and
-thus have good hitting properties such as the following lemma. 
+Another useful property of expanders is that random walks rapidly approach
+the uniform distribution over the vertices.
+Thus having hitting properties such as the following lemma. 
 
 %The \emph{expansion} of $G$ is
 %\begin{align*}
@@ -689,8 +700,8 @@ To outline how Dinur's transformation
 works, we briefly discuss (without proof) the three composed operations in her reduction:
 $$
 \underbrace{G \mapsto H}_\text{preprocess} \quad\text{then}\quad
-\underbrace{H \mapsto H'}_\text{power} \quad\text{then}\quad
-\underbrace{H' \mapsto G'}_\text{compose}.
+\underbrace{H \mapsto H^t}_\text{power} \quad\text{then}\quad
+\underbrace{H^t \mapsto G'}_\text{compose}.
 $$
 Excluding the preprocessing step, Dinur's construction balances two
 competing transformations.  The first (power) greatly amplifies
@@ -709,60 +720,110 @@ $$
 requires that $|G_{i+1}|$ is at most some constant factor larger
 than $|G_i|$ for every $i$.
 
-\subsubsection*{Preprocess $\prep(G)$}
+\subsubsection*{Preprocess $\boldsymbol{\prep}(G)$}
 
 The preprocessing operation $G \mapsto H$ is performed in two steps.
-The first step $G \mapsto H_1$ returns a constant-degree constraint graph $H_1$.
-While, the second step $H_1 \mapsto H$ ensures that the constraint graph $H$
-is ... 
+The first step $G \mapsto H_0$ returns a constant-degree constraint graph $H_0$.
+The second step $H_0 \mapsto H$ ensures that the constraint graph $H$
+expands by superimposing a constant degree expander on $H_0$ (and adding self-loops).
 
 \begin{enumerate}
-\item \textbf{Sparsify} $G \mapsto H_1$
+\item \textbf{Sparsify} $G \mapsto H_0$
 
 This degree-reduction step uses the expander replacement technique of
 \cite{papadimitriou1991optimization}.
-Each vertex $v$ in graph $G$ is \emph{replaced} with an $(n, \lambda_1, d_1)$-expander
-$\cloud(v)$ in graph $H_1$ (by Lemma~\ref{expandersexist})
+Each vertex $v$ in graph $G$ is \emph{replaced} with an $(n, \lambda_0, d_0)$-expander
+$\cloud(v)$ in graph $H_0$ (by Lemma~\ref{expandersexist})
 with an equality constraint for each edge in $\cloud(v)$.
-For each edge $\{u,v\}$ in $G$ an edge in $H_1$ (with its constraint)
+For each edge $uv$ in $G$ an edge in $H_0$ (with its constraint)
 connects one vertex from $\cloud(u)$ with one vertex in $\cloud(v)$.
-Thus, $H_1$ is a $(d_1+1)$-regular graph on $2\cdot|E|$ vertices.
+Thus, $H_0$ is a $(d_0+1)$-regular graph on $2\cdot|E|$ vertices.
 The alphabet stays the same.
-Clearly, $\UNSAT(G)=0 \implies \UNSAT(H_1)=0$ and $|H_1|=O(|G|)$.
-It can also be shown that there exists a constant $c>0$ such that
+Clearly, $\UNSAT(G)=0 \implies \UNSAT(H_0)=0$ and $|H_0|=O(|G|)$.
+It can be shown that there exists a constant $c_0>0$ such that
 $$
-c\cdot\UNSAT(G) \le \UNSAT(H_1) \le \UNSAT(G). 
+c_0\cdot\UNSAT(G) \le \UNSAT(H_0) \le \UNSAT(G). 
 $$
 
-\item \textbf{Expanderize} $H_1 \mapsto H$
+\item \textbf{Expanderize} $H_0 \mapsto H$
 
-This step returns the union of $H_1$ and a $(2\cdot|E|, \lambda_1, d_1)$-expander
+This step returns the union of $H_0$ and a $(2\cdot|E|, \lambda_0, d_0)$-expander
 as in Lemma~\ref{union}.
-Thus, $H$ is a $(2\cdot|E|, \lambda_1 + d_1 + 1, 2\cdot d_1 + 1)$-expander.
+Thus, $H$ is a $(2\cdot|E|, \lambda_0 + d_0 + 1, 2\cdot d_0 + 1)$-expander.
 Add trivial constraints (i.e., constraints which are always satisfied)
 to each edge contributed by the constant degree expander.
 The alphabet stays the same.
 %then it is clear that 
-Clearly, $\UNSAT(H_1)=0 \implies \UNSAT(H)=0$
-and $|H|=O(|H_1|)$.
-It can also be shown that there exists a constant $c_1>0$ such that
+Clearly, $\UNSAT(H_0)=0 \implies \UNSAT(H)=0$
+and $|H|=O(|H_0|)=O(|G|)$.
+It can be shown that there exists a constant $c_1>0$ such that
 $$
-c_1\cdot\UNSAT(H_1) \le \UNSAT(H) \le \UNSAT(H_1). 
+c_1\cdot\UNSAT(H_0) \le \UNSAT(H) \le \UNSAT(H_0). 
 $$
 
 \end{enumerate}
 
-\subsubsection*{Power $\prep(G)^t$}
+\subsubsection*{Power $\prep(G)^{\boldsymbol{t}}$}
 
-The powering operation $H \mapsto H'$ amplifies the gap ...
+The $t$ power operation $H \mapsto H^t$ takes as input a
+constraint graph $H = (V, E, \Sigma, \mathcal{C})$ whose
+underlying graph is an $(n, \lambda, d)$-expander and outputs a
+constraint graph $H^t = (V, E^t, \Sigma^{d^{t/2}}, \mathcal{C}^t)$
+such that:
+\begin{itemize}
+
+\item
+The underlying graph $(V, E^t)$ of $H^t$ is the $t$-th power of the
+underlying graph $(V, E)$ of $H$.
+That is, $H^t$ has the same vertex set as $H$ and we have an edge $uv$ in $H^t$
+for every length $t$ walk from $u$ to $v$ in $H$.
+We refer to the edges of $H^t$ as \emph{paths} and the edges of $H$ as \emph{edges}.
+
+\item
+Let $d_H : V \times V \to \N$ be the shortest path metric on $H$.
+Assignments $\sigma^t \;:\; V \to \Sigma^{d^{t/2}}$ to a vertex $v$ in $H^t$
+corresponds to assigning a value from $\Sigma$ to all vertices in the $t/2$-ball\footnote{
+Since $H$ is $d$-regular, no vertex has more than $d^{t/2}$ neighbors in the
+$t/2$-ball around it.}
+in $d_H$ around $v$.
+We say an assignment $\sigma^t(v)$ to a vertex $v$ in $H^t$ is its opinion
+about what values are assigned to all the vertices in the $t/2$-ball in $d_H$
+around it in $H$.
+For each vertex $u$ in the $t/2$-ball in $d_H$ around $v$, we say $\sigma^t(v)_u$ is
+$v$'s opinion about $u$'s assignment in $H$. 
+
+\item
+For each edge $uv$ in $H^t$ the edge constaint $c_{uv}^t$ is satisfied
+exactly when the opinions of $u$ and $v$ are consistent with an
+assignment $\sigma \;:\; V \to \Sigma$ satisfying all constraints induced by
+$u$, $v$, and their neighbors.
+
+\end{itemize}
+
+The powering operation $H \mapsto H^t$ amplifies the gap between the
+unsat-value of satisfiable and unsatisfiable instance.
 
 critical step and the main novelty
 
+main lemma
+
+\begin{lemma}[Amplification Lemma]
+Fix $\lambda < d$ and $|\Sigma|$.
+For all $t \in \N$ and for every $d$-regular constraint graph $H$ with
+spectral expansion $\lambda$, there exists a constant $c$ depending
+on $\lambda, d,$ and $|\Sigma|$ such that
+$$
+\UNSAT(H^t) \ge c\cdot\sqrt{t}\cdot\min\{\UNSAT(H), \frac{1}{t}\}.
+$$
+\end{lemma}
+
+\begin{proof_idea}
 error reduction
+\end{proof_idea}
 
-\subsubsection*{Compose $\prep(G)^t \circ \mathcal{P}$}
+\subsubsection*{Compose $\prep(G)^t \boldsymbol{\circ \mathcal{P}}$}
 
-Lastly, the compose operation $H' \mapsto G'$ shrinks the alphabet size ...
+Lastly, the compose operation $H^t \mapsto G'$ shrinks the alphabet size ...
 
 alphabet-reduction
 
