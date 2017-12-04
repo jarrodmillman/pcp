@@ -66,6 +66,8 @@
 	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
 \newenvironment{proof_idea}{\noindent {\bf Proof Idea:}
 	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
+\newenvironment{proof_intuition}{\noindent {\bf Proof Intuition:}
+	\hspace*{1mm}}{\hspace*{\fill} $\Box$ }
 \newenvironment{proof_claim}{\begin{quotation} \noindent Proof: \hspace*{1mm}}{
 	\hspace*{\fill} $\diamond$ \end{quotation}}
 
@@ -122,6 +124,8 @@
 \DeclarePairedDelimiter{\floor}{\lfloor}{\rfloor}
 \DeclarePairedDelimiter{\ceil}{\lceil}{\rceil}
 \newcommand{\comp}[1]{\overline{#1}}
+\newcommand{\argmax}[1]{\underset{#1}{\operatorname{argmax}}}
+\newcommand{\argmin}[1]{\underset{#1}{\operatorname{argmin}}}
 
 
 
@@ -166,8 +170,10 @@
 \newcommand{\COL}{\mathsf{COL}}
 \newcommand{\MAX}{\mathsf{MAX}}
 \newcommand{\SAT}{\mathsf{SAT}}
+\newcommand{\CNF}{\mathsf{CNF}}
 \newcommand{\UNSAT}{\mathsf{UNSAT}}
 \newcommand{\GAPSAT}{\mathsf{GAP\;3SAT}}
+\newcommand{\NULL}{\mathsf{NULL}}
 
 \newcommand{\opt}{{\operatorname{opt}}}
 \newcommand{\prep}{{\operatorname{prep}}}
@@ -195,10 +201,13 @@ Dinur's proof roughly takes the form:
 Let $G_0$ be a constraint graph encoding a $3\SAT$ instance.
 Fix $t=O(1)$.
 %Set $G_0=G$.
-For a PCP reduction $\mathcal{P}$ (to be described) repeat the following $\log|G_0|$ times:
+For a PCP reduction $\mathcal{P}$ repeat the following $\log|G_0|$ times:
 \begin{align*}
 G_{i+1}=G_i^t \circ \mathcal{P}.
-\end{align*} }
+\end{align*}
+%This corresponds to a polynomial-time transformation from instances $3\SAT$ instance
+%with ...
+}
 
 \section{Introduction}
 
@@ -321,7 +330,8 @@ $(r, q)$-restricted verifier $V$ such that
 \item[\textbf{(Soundness)}] $\;x \notin\; L \;\implies\; \forall \pi \quad \Pr[V^\pi(x) \text{ accepts}] \le 1/2$.
 \end{itemize}
 \end{definition}
-We use the notation $\PCP_s[r(n), q(n)]$ to indicate the \emph{soundness error} is $s$ and not $1/2$.
+We use $\PCP_s[r(n), q(n)]$ to indicate that the \emph{soundness error} is at most $s$
+and not $1/2$.
 
 To get a sense of how these classes relate to more standard complexity classes,
 note that setting the parameters to $0$ yields the following trivial equivalences:
@@ -496,11 +506,27 @@ $|\Sigma| = 3$, which by Lemma~\ref{csg-hard} we know to be $\NP$-hard.
 Let $G_0 = (V_0, E_0, \Sigma, \mathcal{C})$ be an instance of the constraint
 graph satisfaction problem with $|\Sigma| = 3$.
 By iteratively applying Theorem~\ref{dinursthm}, we construct a sequence
-of constraint graphs $G_0, G_1, \dots, G_t$ such that $G_i$ is the constraint
-graph constructed from $G_{i-1}$ for $i\ge 1$.
+of constraint graphs $G_1, \dots, G_t$ (each with alphabet $\Sigma_0$) such
+that $G_i$ is the constraint graph constructed from $G_{i-1}$.
+Clearly, by induction $|G_i| \le c^i \cdot |G_0|$ and
+$\UNSAT(G_0) = 0 \implies \UNSAT(G_i) = 0 $ for all $i$.
+To show soundness, suppose $\UNSAT(G_0) > 0$.
+If there exists some $i^* < t$ such that $\UNSAT(G_{i^*})\ge \alpha/2$,
+then (by Theorem~\ref{dinursthm}) $\UNSAT(G_{i})\ge \alpha/2$ for all $i>i^*$.
+For any other $i$, by induction, we have that
+$$
+\UNSAT(G_i) \ge \min \{2^i\cdot \UNSAT(G_0), \alpha\}.
+$$
+Since we assumed $\UNSAT(G_0) > 0$, we have $\UNSAT(G_0) \ge 1/|E_0|$.
+Let $t = \log|E_0| = O(\log n)$.
+Hence, $\UNSAT(G_t)$ since $2^t\cdot \UNSAT(G_0) > \alpha$.
 
-\fixme{until a constant fraction...see Dinur p. 13, Trevisan p. 9}
-\end{proof_of}
+This proves $\NP$-hardness of gap constraint satisfaction for
+2 variables and alphabet size $|\Sigma_0|$.
+To show that $\GAPSAT$ is $\NP$-hard, we can use a local gadget
+reduction that converts each constraint $c_e \subseteq \Sigma_0 \times \Sigma_0$
+to a constant number of 3$\CNF$ clauses.
+\end{proof_of}\\
 
 Finally, we show that Corollary~\ref{corollary} implies $\NP \subseteq \PCP[O(\log n),O(1)]$
 and thus Theorem~\ref{pcp}.\footnote{
@@ -706,9 +732,9 @@ $$
 Excluding the preprocessing step, Dinur's construction balances two
 competing transformations.  The first (power) greatly amplifies
 the gap between the unsat-value of satisfiable and unsatisfiable
-instances at the expense of increasing the alphabet size,
-while the second (compose) reduces the alphabet size while only
-modestly decreasing that greatly increased gap.
+instances at the expense of modestly increasing the alphabet size,
+while the second (compose) reduces the alphabet size back to some constant
+alphabet $\Sigma_0$ while modestly decreasing the amplified gap.
 
 As we saw in the proof of Corollary~\ref{dinursthm}, we will iteratively apply
 Dinur's transformation $\log m$ times (starting from an initial constraint graph
@@ -720,7 +746,7 @@ $$
 requires that $|G_{i+1}|$ is at most some constant factor larger
 than $|G_i|$ for every $i$.
 
-\subsubsection*{Preprocess $\boldsymbol{\prep}(G)$}
+\subsubsection*{Preprocess: $\boldsymbol{\prep}(G)$}
 
 The preprocessing operation $G \mapsto H$ is performed in two steps.
 The first step $G \mapsto H_0$ returns a constant-degree constraint graph $H_0$.
@@ -748,11 +774,13 @@ $$
 \item \textbf{Expanderize} $H_0 \mapsto H$
 
 This step returns the union of $H_0$ and a $(2\cdot|E|, \lambda_0, d_0)$-expander
-as in Lemma~\ref{union}.
+as in Lemma~\ref{union} with a self-loop on each vertex.
 Thus, $H$ is a $(2\cdot|E|, \lambda_0 + d_0 + 1, 2\cdot d_0 + 1)$-expander.
-Add trivial constraints (i.e., constraints which are always satisfied)
-to each edge contributed by the constant degree expander.
-The alphabet stays the same.
+The alphabet is unchanged and we add trivial constraints
+%(i.e., constraints which are 
+(i.e., one always satisfied)
+to each new edge. % contributed by the constant degree expander.
+%The alphabet stays the same.
 %then it is clear that 
 Clearly, $\UNSAT(H_0)=0 \implies \UNSAT(H)=0$
 and $|H|=O(|H_0|)=O(|G|)$.
@@ -763,12 +791,15 @@ $$
 
 \end{enumerate}
 
-\subsubsection*{Power $\prep(G)^{\boldsymbol{t}}$}
+\subsubsection*{Power: $\prep(G)^{\boldsymbol{t}}$}
 
-The $t$ power operation $H \mapsto H^t$ takes as input a
+The $t$-th power operation $H \mapsto H^t$ takes as input a
 constraint graph $H = (V, E, \Sigma, \mathcal{C})$ whose
 underlying graph is an $(n, \lambda, d)$-expander and outputs a
-constraint graph $H^t = (V, E^t, \Sigma^{d^{t/2}}, \mathcal{C}^t)$
+constraint graph
+$$
+H^t = (V, E^t, \Sigma^{d^{t/2}}, \mathcal{C}^t)
+$$
 such that:
 \begin{itemize}
 
@@ -780,20 +811,27 @@ for every length $t$ walk from $u$ to $v$ in $H$.
 We refer to the edges of $H^t$ as \emph{paths} and the edges of $H$ as \emph{edges}.
 
 \item
-Let $d_H : V \times V \to \N$ be the shortest path metric on $H$.
-Assignments $\sigma^t \;:\; V \to \Sigma^{d^{t/2}}$ to a vertex $v$ in $H^t$
-corresponds to assigning a value from $\Sigma$ to all vertices in the $t/2$-ball\footnote{
+An assignment $\sigma^t \;:\; V \to \Sigma^{d^{t/2}}$ assigns to each
+vertex $v$ in $H^t$ an \emph{opinion vector}
+$$
+\sigma^t(v) \in \Sigma^{d^{t/2}}. 
+$$
+Let $d_H : V \times V \to \N$ be the shortest path metric on $H$
+and let
+$$
+\mathcal{B}_r[v] = \{u \in V \;:\; d_H(u,v) \le r\}
+$$
+be the set of all vertices in the closed (metric) ball of radius $r$ around $v$ in $d_H$.
+%which corresponds to assigning a value from $\Sigma$ to all vertices in $\mathcal{B}_r[v]$.
+We say an assignment $\sigma^t(v)$ to a vertex $v$ in $H^t$ is its \emph{opinion}
+about what values are assigned in $H$ to all the vertices in $\mathcal{B}_{t/2}[v]$.\footnote{
 Since $H$ is $d$-regular, no vertex has more than $d^{t/2}$ neighbors in the
-$t/2$-ball around it.}
-in $d_H$ around $v$.
-We say an assignment $\sigma^t(v)$ to a vertex $v$ in $H^t$ is its opinion
-about what values are assigned to all the vertices in the $t/2$-ball in $d_H$
-around it in $H$.
-For each vertex $u$ in the $t/2$-ball in $d_H$ around $v$, we say $\sigma^t(v)_u$ is
+$t/2$-ball around it.  If needed, pad out the vector with $\NULL$.}
+For each vertex $u$ in $\mathcal{B}_r[v]$, we say $\sigma^t(v)_u$ is
 $v$'s opinion about $u$'s assignment in $H$. 
 
 \item
-For each edge $uv$ in $H^t$ the edge constaint $c_{uv}^t$ is satisfied
+For each edge $uv$ in $H^t$ the edge constraint $c_{uv}^t$ is satisfied
 exactly when the opinions of $u$ and $v$ are consistent with an
 assignment $\sigma \;:\; V \to \Sigma$ satisfying all constraints induced by
 $u$, $v$, and their neighbors.
@@ -801,11 +839,9 @@ $u$, $v$, and their neighbors.
 \end{itemize}
 
 The powering operation $H \mapsto H^t$ amplifies the gap between the
-unsat-value of satisfiable and unsatisfiable instance.
-
-critical step and the main novelty
-
-main lemma
+unsat-value of satisfiable and unsatisfiable instances.
+This construction and the following combinatorial soundness amplification lemma is the main
+technical contribution of Dinur's proof of the PCP Theorem.
 
 \begin{lemma}[Amplification Lemma]
 Fix $\lambda < d$ and $|\Sigma|$.
@@ -817,16 +853,58 @@ $$
 $$
 \end{lemma}
 
-\begin{proof_idea}
+\begin{proof_intuition}
 error reduction
-\end{proof_idea}
 
-\subsubsection*{Compose $\prep(G)^t \boldsymbol{\circ \mathcal{P}}$}
+each vertex in $H^t$ gets information about many other vertices and
+edges to detect inconsistencies
 
-Lastly, the compose operation $H^t \mapsto G'$ shrinks the alphabet size ...
+Given the vector of opinions assigned to each vertex in $H^t$
+$$
+\sigma^t \;:\; V \to \Sigma^{d^{t/2}}
+$$
+extract assignments to each vertex in $H$
+$$
+\sigma \;:\; V \to \Sigma
+$$
+by ``popular opinion'' (i.e., by plurality vote).
 
-alphabet-reduction
+$$
+\sigma(v) \;\eqdef\; \argmax{\varsigma \in \Sigma} \; \big| \big\{u \in \mathcal{B}_{t/2}[v] \;:\; \sigma^t(v)_u = \varsigma \big\}\big|
+$$
 
+Hence
+
+$$
+\Pr[t/2-\text{step random walk from $v$ to $u$ satisfies }\sigma^t(v)_u = \sigma(u)] \ge \frac{1}{|\Sigma|}
+$$
+or
+$$
+\Pr_{u \in \mathcal{B}_{t/2}[v]}[\sigma^t(v)_u = \sigma(u)] \ge \frac{1}{|\Sigma|}
+$$
+
+the probability that a random edge 
+
+\end{proof_intuition}\\
+
+Overall, the power operation increases the gap at the cost of incurring
+a blow-up in the alphabet size (it also changes the degree and expansion,
+but this doesn't matter for the analysis).
+
+\subsubsection*{Compose: $\prep(G)^t \boldsymbol{\circ \mathcal{P}}$}
+
+Given a PCP reduction $\mathcal{P}$, the compose operation $H^t \mapsto G'$
+shrinks the alphabet to some fixed alphabet $\Sigma_0$ without shrinking the
+gap too much.
+The PCP reduction $\mathcal{P}$ takes a single large-alphabet constraint and
+produces a system of (possibly many) constraints over a smaller alphabet.
+The compose operation consists of running $\mathcal{P}$ on each constraint
+of $H^t$.
+%
+%alphabet-reduction
+%
+%Hadamard code reduction
+%
 \newpage
 
 \bibliographystyle{plainnat}
